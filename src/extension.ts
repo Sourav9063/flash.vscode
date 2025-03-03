@@ -10,8 +10,15 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 	const labelDecoration = vscode.window.createTextEditorDecorationType({
 		before: {
-			backgroundColor: 'rgb(255,165,0)',
+			backgroundColor: 'rgb(117, 215, 32)',
 			fontWeight: 'bold'
+		}
+	});
+	const labelDecorationQuestion = vscode.window.createTextEditorDecorationType({
+		before: {
+			backgroundColor: 'rgb(235, 141, 104)',
+			fontWeight: 'bold',
+			contentText: '?'
 		}
 	});
 
@@ -23,10 +30,7 @@ export function activate(context: vscode.ExtensionContext) {
 	let labelMap: Map<string, { editor: vscode.TextEditor, position: vscode.Position }> = new Map();
 
 	// Define the character pool for labels: lowercase, then uppercase, then digits
-	const labelChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-	// All alphanumeric characters and common punctuation keys for programmers
-	const commandKey= 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:\'",.<>/`~\\';
-
+	const labelChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:\'",.<>/`~\\';
 
 	// Helper to update all editor decorations based on current query
 	function updateHighlights() {
@@ -143,6 +147,7 @@ export function activate(context: vscode.ExtensionContext) {
 				continue;
 			}
 			const decorationOptions: vscode.DecorationOptions[] = [];
+			const questionDecorationOptions: vscode.DecorationOptions[] = [];
 			editor.setDecorations(matchDecoration, allMatches.filter(m => m.editor === editor).map(m => m.range));
 			editor.setDecorations(dimDecoration, allUnMatches.filter(m => m.editor === editor).map(m => m.range));
 			// set the character before the match to the label character
@@ -152,15 +157,24 @@ export function activate(context: vscode.ExtensionContext) {
 				charCounter++;
 				if (char !== '?') {
 					labelMap.set(char, { editor: editor, position: ranges[i].matchStart });
+					decorationOptions.push({
+						range: ranges[i].range,
+						renderOptions: {
+							before: { contentText: char }
+						}
+					});
 				}
-				decorationOptions.push({
-					range: ranges[i].range,
-					renderOptions: {
-						before: { contentText: char }
-					}
-				});
+				else {
+					questionDecorationOptions.push({
+						range: ranges[i].range,
+						renderOptions: {
+							before: { contentText: '?' }
+						}
+					});
+				}
 			}
 			editor.setDecorations(labelDecoration, decorationOptions);
+			editor.setDecorations(labelDecorationQuestion, questionDecorationOptions);
 
 		}
 	}
@@ -195,6 +209,7 @@ export function activate(context: vscode.ExtensionContext) {
 			editor.setDecorations(dimDecoration, []);
 			editor.setDecorations(matchDecoration, []);
 			editor.setDecorations(labelDecoration, []);
+			editor.setDecorations(labelDecorationQuestion, []);
 		}
 		active = false;
 		searchQuery = '';
@@ -261,7 +276,7 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 
 	context.subscriptions.push(start, startSelection, exit, backspaceHandler, visChange,
-		...[...commandKey].map(c => vscode.commands.registerCommand(`flash-vscode.jump.${c}`, () => handleInput(c)))
+		...[...labelChars].map(c => vscode.commands.registerCommand(`flash-vscode.jump.${c}`, () => handleInput(c)))
 	);
 }
 
