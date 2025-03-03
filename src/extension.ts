@@ -242,13 +242,18 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Override the 'type' command to capture alphanumeric/symbol keys while in nav mode
 	const handleInput = (chr: string) => {
+		if (chr === 'space') {
+			chr = ' ';
+		}
+
 		const text = chr;
 		if (!text) {
 			return; // nothing to handle
 		}
+
 		// If in navigation mode:
 		// Check if this key corresponds to an active jump label
-		if (labelMap.size > 0 && text.length === 1 && labelMap.has(text)) {
+		if (labelMap.size > 0 && labelMap.has(text)) {
 			// We have a label matching this key – perform the jump
 			const target = labelMap.get(text)!;
 			jump(target);
@@ -257,11 +262,6 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		}
 
-		// If not a jump label (or no labels yet), treat it as part of the search query
-		if (text === ' ' || text.length !== 1) {
-			// (Optionally ignore space or multi-char input in this mode)
-			return;
-		}
 		// Append typed character to the search query
 		searchQuery += text;
 		updateHighlights();
@@ -275,8 +275,10 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
+	let allChars = labelChars.split('').concat(['space']);
+
 	context.subscriptions.push(start, startSelection, exit, backspaceHandler, visChange,
-		...[...labelChars].map(c => vscode.commands.registerCommand(`flash-vscode.jump.${c}`, () => handleInput(c)))
+		...allChars.map(c => vscode.commands.registerCommand(`flash-vscode.jump.${c}`, () => handleInput(c)))
 	);
 }
 
