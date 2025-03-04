@@ -3,21 +3,21 @@ import * as vscode from 'vscode';
 export function activate(context: vscode.ExtensionContext) {
 	// Decoration types for grey-out, highlight, and labels:
 	const dimDecoration = vscode.window.createTextEditorDecorationType({
-		color: 'rgba(128,128,128,0.5)'  // gray, semi-transparent to dim text
+		color: '#4c566a'  // gray, semi-transparent to dim text
 	});
 	const matchDecoration = vscode.window.createTextEditorDecorationType({
 		color: 'rgb(0,191,255)'  // blue text (for matched characters)
 	});
 	const labelDecoration = vscode.window.createTextEditorDecorationType({
 		before: {
-			backgroundColor: 'rgb(117, 215, 32)',
-			fontWeight: 'bold'
+			color: 'black',
+			backgroundColor: '#a3be8c',
 		}
 	});
 	const labelDecorationQuestion = vscode.window.createTextEditorDecorationType({
 		before: {
-			backgroundColor: 'rgb(235, 141, 104)',
-			fontWeight: 'bold',
+			color: 'black',
+			backgroundColor: '#ebcb8b',
 			contentText: '?'
 		}
 	});
@@ -47,6 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
 				// Apply dim decoration to full visible ranges of each editor
 				editor.setDecorations(dimDecoration, editor.visibleRanges);
 				editor.setDecorations(labelDecoration, []);
+				editor.setDecorations(labelDecorationQuestion, []);
 			}
 			return;
 		}
@@ -61,8 +62,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// Not empty query: find matches in each visible editor
 		interface LocationInfo { editor: vscode.TextEditor, range: vscode.Range, matchStart: vscode.Position }
-		const allMatches: LocationInfo[] = [];
-		const allLabels: LocationInfo[] = [];
+		let allMatches: LocationInfo[] = [];
+		let allLabels: LocationInfo[] = [];
 		const allUnMatches: LocationInfo[] = [];
 		let nextChars: string[] = [];
 
@@ -126,6 +127,33 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		}
 
+		const activeEditor = vscode.window.activeTextEditor;
+		if (activeEditor) {
+			const cursorPos = activeEditor.selection.active;
+			console.log('Cursor position:', cursorPos);
+			// Helper function to compute Euclidean distance between two positions.
+			function getDistance(pos1: vscode.Position, pos2: vscode.Position): number {
+				const lineDiff = pos1.line - pos2.line;
+				const charDiff = pos1.character - pos2.character;
+				return Math.sqrt(lineDiff * lineDiff + charDiff * charDiff);
+			}
+
+			// Sort the matches by distance from the cursor.
+			allLabels = allLabels.sort((a, b) => {
+				if (a.editor !== activeEditor && b.editor === activeEditor) {
+					return 1;
+				}
+				if (a.editor === activeEditor && b.editor !== activeEditor) {
+					return -1;
+				}
+				if (a.editor !== activeEditor && b.editor !== activeEditor) {
+					return 0;
+				}
+				const distanceA = getDistance(cursorPos, a.matchStart);
+				const distanceB = getDistance(cursorPos, b.matchStart);
+				return distanceA - distanceB;
+			});
+		} 
 		// Decide how many (if any) to label:
 		const totalMatches = allMatches.length;
 		// deduplicate nextChars

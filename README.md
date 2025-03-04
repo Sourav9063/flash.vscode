@@ -45,7 +45,11 @@ To invoke Flash VSCode commands from VSCodeVim, in your `settings.json`, add ent
   {
     "before": ["S"],
     "commands": ["flash-vscode.startSelection"]
-  }
+  }, 
+  {
+    "before": [ "<BS>" ],
+    "commands": [ "flash-vscode.backspace" ]
+  },
 ]
 ```
 
