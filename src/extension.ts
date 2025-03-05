@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 export function activate(context: vscode.ExtensionContext) {
 	// Decoration types for grey-out, highlight, and labels:
 	const dimDecoration = vscode.window.createTextEditorDecorationType({
-		color: '#4c566a'  // gray, semi-transparent to dim text
+		color: 'rgba(128, 128, 128, 0.5)'  // gray, semi-transparent to dim text
 	});
 	const matchDecoration = vscode.window.createTextEditorDecorationType({
 		color: 'rgb(0,191,255)'  // blue text (for matched characters)
@@ -130,30 +130,29 @@ export function activate(context: vscode.ExtensionContext) {
 		const activeEditor = vscode.window.activeTextEditor;
 		if (activeEditor) {
 			const cursorPos = activeEditor.selection.active;
-			console.log('Cursor position:', cursorPos);
 			// Helper function to compute Euclidean distance between two positions.
 			function getDistance(pos1: vscode.Position, pos2: vscode.Position): number {
 				const lineDiff = pos1.line - pos2.line;
 				const charDiff = pos1.character - pos2.character;
-				return Math.sqrt(lineDiff * lineDiff + charDiff * charDiff);
+				return lineDiff * lineDiff * 10 + charDiff * charDiff + 4;
 			}
 
 			// Sort the matches by distance from the cursor.
-			allLabels = allLabels.sort((a, b) => {
-				if (a.editor !== activeEditor && b.editor === activeEditor) {
-					return 1;
+			allLabels.sort((a, b) => {
+				let weight_a = 1;
+				let weight_b = 1;
+				if (a.editor !== activeEditor) {
+					weight_a = 10000;
 				}
-				if (a.editor === activeEditor && b.editor !== activeEditor) {
-					return -1;
+				if (b.editor !== activeEditor) {
+					weight_b = 10000;
 				}
-				if (a.editor !== activeEditor && b.editor !== activeEditor) {
-					return 0;
-				}
-				const distanceA = getDistance(cursorPos, a.matchStart);
-				const distanceB = getDistance(cursorPos, b.matchStart);
+
+				const distanceA = getDistance(cursorPos, a.matchStart) * weight_a;
+				const distanceB = getDistance(cursorPos, b.matchStart) * weight_b;
 				return distanceA - distanceB;
 			});
-		} 
+		}
 		// Decide how many (if any) to label:
 		const totalMatches = allMatches.length;
 		// deduplicate nextChars
@@ -170,10 +169,13 @@ export function activate(context: vscode.ExtensionContext) {
 
 		let charCounter = 0;
 
-		for (const editor of vscode.window.visibleTextEditors) {
-			if (isSelectionMode && editor !== vscode.window.activeTextEditor) {
-				continue;
-			}
+		let visibleEditors = vscode.window.visibleTextEditors;
+		// move the active editor to the front of the array
+		if (activeEditor) {
+			visibleEditors = [activeEditor, ...vscode.window.visibleTextEditors.filter(e => e !== activeEditor)];
+		}
+
+		for (const editor of visibleEditors) {
 			const decorationOptions: vscode.DecorationOptions[] = [];
 			const questionDecorationOptions: vscode.DecorationOptions[] = [];
 			editor.setDecorations(matchDecoration, allMatches.filter(m => m.editor === editor).map(m => m.range));
@@ -203,6 +205,9 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 			editor.setDecorations(labelDecoration, decorationOptions);
 			editor.setDecorations(labelDecorationQuestion, questionDecorationOptions);
+			if (isSelectionMode) {
+				break;
+			}
 
 		}
 	}
