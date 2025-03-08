@@ -32,6 +32,15 @@
 
 ## Configuration
 
+### Case Sensitivity
+
+By default, `flash-vscode`'s search is case sensitive. To change this behavior, add to your settings:
+```json
+{
+  "flash-vscode.caseSensitive": false
+}
+```
+
 ### VSCodeVim Integration
 
 To invoke Flash VSCode commands from VSCodeVim, in your `settings.json`, add entries to `"vim.normalModeKeyBindingsNonRecursive"` as follows:

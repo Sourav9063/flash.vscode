@@ -37,6 +37,9 @@ export function activate(context: vscode.ExtensionContext) {
 		if (!active) return;
 		labelMap.clear();
 
+		const config = vscode.workspace.getConfiguration('flash-vscode');
+		const caseSensitive = config.get<boolean>('caseSensitive', true);
+
 		// If query is empty, simply grey out everything (no matches to highlight)
 		if (searchQuery.length === 0) {
 			// Grey-out all visible text
@@ -90,20 +93,22 @@ export function activate(context: vscode.ExtensionContext) {
 				});
 				for (let lineNum = startLine; lineNum <= endLine; lineNum++) {
 					const lineText = document.lineAt(lineNum).text;
-					// Search for all occurrences of searchQuery in this line (case-sensitive)
-					let index = lineText.indexOf(searchQuery);
+					const textToSearch = caseSensitive ? lineText : lineText.toLowerCase();
+					const queryToSearch = caseSensitive ? searchQuery : searchQuery.toLowerCase();
+					// Search for all occurrences of queryToSearch in this line (case-sensitive)
+					let index = textToSearch.indexOf(queryToSearch);
 					let last_match_index = 0;
 					while (index !== -1) {
 						const matchStart = new vscode.Position(lineNum, index);
-						const matchEnd = new vscode.Position(lineNum, index + searchQuery.length);
+						const matchEnd = new vscode.Position(lineNum, index + queryToSearch.length);
 						// set nextChar to the character after the match, if it exists
-						const nextChar = lineText[index + searchQuery.length];
+						const nextChar = textToSearch[index + queryToSearch.length];
 						if (nextChar) {
 							nextChars.push(nextChar);
 						}
 						allMatches.push({ editor, range: new vscode.Range(matchStart, matchEnd), matchStart: matchStart });
-						const labelStart = new vscode.Position(lineNum, index + searchQuery.length);
-						const labelEnd = new vscode.Position(lineNum, index + searchQuery.length + 1);
+						const labelStart = new vscode.Position(lineNum, index + queryToSearch.length);
+						const labelEnd = new vscode.Position(lineNum, index + queryToSearch.length + 1);
 						allLabels.push({ editor, range: new vscode.Range(labelStart, labelEnd), matchStart: matchStart });
 						// continue searching from just after this match start
 						if (last_match_index < index) {
@@ -113,14 +118,14 @@ export function activate(context: vscode.ExtensionContext) {
 								matchStart: new vscode.Position(lineNum, index - 1)
 							});
 						}
-						last_match_index = index + searchQuery.length;
-						index = lineText.indexOf(searchQuery, index + 1);
+						last_match_index = index + queryToSearch.length;
+						index = textToSearch.indexOf(queryToSearch, index + 1);
 					}
-					if (last_match_index < lineText.length) {
+					if (last_match_index < textToSearch.length) {
 						allUnMatches.push({
 							editor,
-							range: new vscode.Range(new vscode.Position(lineNum, last_match_index), new vscode.Position(lineNum, lineText.length)),
-							matchStart: new vscode.Position(lineNum, lineText.length - 1)
+							range: new vscode.Range(new vscode.Position(lineNum, last_match_index), new vscode.Position(lineNum, textToSearch.length)),
+							matchStart: new vscode.Position(lineNum, textToSearch.length - 1)
 						});
 					}
 				}
@@ -307,6 +312,12 @@ export function activate(context: vscode.ExtensionContext) {
 			updateHighlights();
 		}
 	});
+	const configChangeListener = vscode.workspace.onDidChangeConfiguration(event => {
+		if (event.affectsConfiguration('flash-vscode.caseInsensitive')) {
+			updateHighlights();
+		}
+	});
+	context.subscriptions.push(configChangeListener);
 
 	let allChars = labelChars.split('').concat(['space']);
 

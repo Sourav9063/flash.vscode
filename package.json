@@ -10,18 +10,28 @@
     "Other"
   ],
   "publisher": "cunbidun",
-    "author": {
-        "name": "Duy Pham"
-    },
-    "license": "MIT",
-    "homepage": "https://github.com/cunbidun/flash.vscode",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/cunbidun/flash.vscode.git"
-    },
+  "author": {
+    "name": "Duy Pham"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/cunbidun/flash.vscode",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cunbidun/flash.vscode.git"
+  },
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Flash Extension",
+      "properties": {
+        "flash-vscode.caseSensitive": {
+          "type": "boolean",
+          "default": true,
+          "description": "When enabled, search matches will be case sensitive."
+        }
+      }
+    },
     "commands": [
       {
         "command": "flash-vscode.start",
@@ -357,7 +367,6 @@
         "key": "0",
         "when": "flash-vscode.active && editorTextFocus"
       },
-
       {
         "command": "flash-vscode.jump.!",
         "key": "shift+1",
