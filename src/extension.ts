@@ -31,10 +31,13 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Define the character pool for labels: lowercase, then uppercase, then digits
 	const labelChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:\'",.<>/`~\\';
+	const searchChars = labelChars;
 
 	// Helper to update all editor decorations based on current query
 	function updateHighlights() {
-		if (!active) return;
+		if (!active) {
+			return;
+		};
 		labelMap.clear();
 
 		const config = vscode.workspace.getConfiguration('flash-vscode');
@@ -219,7 +222,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Command to start navigation mode
 	const _start = () => {
-		if (active) return;
+		if (active) { return; };
 		active = true;
 		searchQuery = '';
 		labelMap.clear();
@@ -241,7 +244,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Exit navigation mode (clear decorations and reset state)
 	const exit = vscode.commands.registerCommand('flash-vscode.exit', () => {
-		if (!active) return;
+		if (!active) { return; };
 		// Clear all decorations
 		for (const editor of vscode.window.visibleTextEditors) {
 			editor.setDecorations(dimDecoration, []);
@@ -257,7 +260,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Handle backspace: remove last character of query
 	const backspaceHandler = vscode.commands.registerCommand('flash-vscode.backspace', () => {
-		if (!active) return;
+		if (!active) { return; };
 		if (searchQuery.length > 0) {
 			searchQuery = searchQuery.slice(0, -1);
 			updateHighlights();
@@ -276,7 +279,7 @@ export function activate(context: vscode.ExtensionContext) {
 		if (vscode.window.activeTextEditor !== targetEditor) {
 			vscode.window.showTextDocument(targetEditor.document, targetEditor.viewColumn);
 		}
-	}
+	};
 
 	// Override the 'type' command to capture alphanumeric/symbol keys while in nav mode
 	const handleInput = (chr: string) => {
@@ -317,11 +320,9 @@ export function activate(context: vscode.ExtensionContext) {
 			updateHighlights();
 		}
 	});
-	context.subscriptions.push(configChangeListener);
 
-	let allChars = labelChars.split('').concat(['space']);
-
-	context.subscriptions.push(start, startSelection, exit, backspaceHandler, visChange,
+	let allChars = searchChars.split('').concat(['space']);
+	context.subscriptions.push(configChangeListener, start, startSelection, exit, backspaceHandler, visChange,
 		...allChars.map(c => vscode.commands.registerCommand(`flash-vscode.jump.${c}`, () => handleInput(c)))
 	);
 }
