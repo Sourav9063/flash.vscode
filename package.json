@@ -4,7 +4,7 @@
   "description": "Minimal port of the flash.nvim plugin, bringing fast, label-based code navigation to Visual Studio Code",
   "version": "0.0.7",
   "engines": {
-    "vscode": "^1.97.0"
+    "vscode": "^1.96.0"
   },
   "categories": [
     "Other"
@@ -29,6 +29,41 @@
           "type": "boolean",
           "default": true,
           "description": "When enabled, search matches will be case sensitive."
+        },
+        "flash-vscode.dimColor": {
+          "type": "string",
+          "default": "rgba(128, 128, 128, 0.5)",
+          "description": "Color used to dim text."
+        },
+        "flash-vscode.matchColor": {
+          "type": "string",
+          "default": "rgb(0,191,255)",
+          "description": "Color used for matched text."
+        },
+        "flash-vscode.matchFontWeight": {
+          "type": "string",
+          "default": "normal",
+          "description": "Font weight for matched text."
+        },
+        "flash-vscode.labelColor": {
+          "type": "string",
+          "default": "black",
+          "description": "Color used for label text."
+        },
+        "flash-vscode.labelBackgroundColor": {
+          "type": "string",
+          "default": "#a3be8c",
+          "description": "Background color for labels."
+        },
+        "flash-vscode.labelQuestionBackgroundColor": {
+          "type": "string",
+          "default": "#ebcb8b",
+          "description": "Background color for question labels."
+        },
+        "flash-vscode.labelFontWeight": {
+          "type": "string",
+          "default": "normal",
+          "description": "Font weight for label text."
         }
       }
     },
@@ -540,7 +575,7 @@
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
-    "@types/vscode": "^1.97.0",
+    "@types/vscode": "^1.96.0",
     "@typescript-eslint/eslint-plugin": "^8.22.0",
     "@typescript-eslint/parser": "^8.22.0",
     "@vscode/test-cli": "^0.0.10",
