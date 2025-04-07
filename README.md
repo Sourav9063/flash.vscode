@@ -64,6 +64,28 @@ To invoke Flash VSCode commands from VSCodeVim, in your `settings.json`, add ent
 
 This configuration triggers Flash VSCode when you press `s` or `S` in normal mode.
 
+### Appearance Customization
+
+The following configuration options allow you to customize the visual appearance of Flash VSCode:
+```
+{
+  "flash-vscode.dimColor": "rgba(128, 128, 128, 0.5)",
+  "flash-vscode.matchColor": "rgb(0,191,255)",
+  "flash-vscode.matchFontWeight": "normal",
+  "flash-vscode.labelColor": "black",
+  "flash-vscode.labelBackgroundColor": "#a3be8c",
+  "flash-vscode.labelQuestionBackgroundColor": "#ebcb8b",
+  "flash-vscode.labelFontWeight": "normal"
+}
+```
+- `flash-vscode.dimColor`: Color used to dim text.
+- `flash-vscode.matchColor`: Color used for matched text.
+- `flash-vscode.matchFontWeight`: Font weight for matched text.
+- `flash-vscode.labelColor`: Color used for label text.
+- `flash-vscode.labelBackgroundColor`: Background color for labels.
+- `flash-vscode.labelQuestionBackgroundColor`: Background color for question labels.
+- `flash-vscode.labelFontWeight`: Font weight for label text.
+
 ## Acknowledgements
 * [flash.nvim](https://github.com/folke/flash.nvim) for the original ideas
 * [Jumpy2](https://marketplace.visualstudio.com/items?itemName=DavidLGoldberg.jumpy2) for some of the implementation details
