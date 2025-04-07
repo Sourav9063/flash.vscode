@@ -2,23 +2,35 @@ import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
 	// Decoration types for grey-out, highlight, and labels:
+	const config = vscode.workspace.getConfiguration('flash-vscode');
+	const dimColor = config.get<string>('dimColor', 'rgba(128, 128, 128, 0.5)');
+	const matchColor = config.get<string>('matchColor', 'rgb(0,191,255)');
+	const matchFontWeight = config.get<string>('matchFontWeight', 'normal');
+	const labelColor = config.get<string>('labelColor', 'black');
+	const labelBackgroundColor = config.get<string>('labelBackgroundColor', '#a3be8c');
+	const labelQuestionBackgroundColor = config.get<string>('labelQuestionBackgroundColor', '#ebcb8b');
+	const labelFontWeight = config.get<string>('labelFontWeight', 'normal');
+
 	const dimDecoration = vscode.window.createTextEditorDecorationType({
-		color: 'rgba(128, 128, 128, 0.5)'  // gray, semi-transparent to dim text
+		color: dimColor
 	});
 	const matchDecoration = vscode.window.createTextEditorDecorationType({
-		color: 'rgb(0,191,255)'  // blue text (for matched characters)
+		color: matchColor,
+		fontWeight: matchFontWeight,
 	});
 	const labelDecoration = vscode.window.createTextEditorDecorationType({
 		before: {
-			color: 'black',
-			backgroundColor: '#a3be8c',
+			color: labelColor,
+			backgroundColor: labelBackgroundColor,
+			fontWeight: labelFontWeight,
 		}
 	});
 	const labelDecorationQuestion = vscode.window.createTextEditorDecorationType({
 		before: {
-			color: 'black',
-			backgroundColor: '#ebcb8b',
-			contentText: '?'
+			color: labelColor,
+			backgroundColor: labelQuestionBackgroundColor,
+			contentText: '?',
+			fontWeight: labelFontWeight
 		}
 	});
 

@@ -29,6 +29,41 @@
           "type": "boolean",
           "default": true,
           "description": "When enabled, search matches will be case sensitive."
+        },
+        "flash-vscode.dimColor": {
+          "type": "string",
+          "default": "rgba(128, 128, 128, 0.5)",
+          "description": "Color used to dim text."
+        },
+        "flash-vscode.matchColor": {
+          "type": "string",
+          "default": "rgb(0,191,255)",
+          "description": "Color used for matched text."
+        },
+        "flash-vscode.matchFontWeight": {
+          "type": "string",
+          "default": "normal",
+          "description": "Font weight for matched text."
+        },
+        "flash-vscode.labelColor": {
+          "type": "string",
+          "default": "black",
+          "description": "Color used for label text."
+        },
+        "flash-vscode.labelBackgroundColor": {
+          "type": "string",
+          "default": "#a3be8c",
+          "description": "Background color for labels."
+        },
+        "flash-vscode.labelQuestionBackgroundColor": {
+          "type": "string",
+          "default": "#ebcb8b",
+          "description": "Background color for question labels."
+        },
+        "flash-vscode.labelFontWeight": {
+          "type": "string",
+          "default": "normal",
+          "description": "Font weight for label text."
         }
       }
     },
