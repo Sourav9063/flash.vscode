@@ -11,7 +11,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const labelQuestionBackgroundColor = config.get<string>('labelQuestionBackgroundColor', '#ebcb8b');
 	const labelFontWeight = config.get<string>('labelFontWeight', 'normal');
 	// Define the character pool for labels: lowercase, then uppercase, then digits
-	const labelChars = config.get<string>('keys', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:\'",.<>/`~\\');
+	const labelChars = config.get<string>('labelKeys', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:\'",.<>/`~\\');
 
 	const dimDecoration = vscode.window.createTextEditorDecorationType({
 		color: dimColor
