@@ -64,6 +64,11 @@
           "type": "string",
           "default": "normal",
           "description": "Font weight for label text."
+        },
+        "flash-vscode.keys": {
+          "type": "string",
+          "default": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:'\",.<>/`~\\",
+          "description": "Characters to use for labels."
         }
       }
     },
