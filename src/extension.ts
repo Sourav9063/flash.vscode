@@ -10,6 +10,8 @@ export function activate(context: vscode.ExtensionContext) {
 	const labelBackgroundColor = config.get<string>('labelBackgroundColor', '#a3be8c');
 	const labelQuestionBackgroundColor = config.get<string>('labelQuestionBackgroundColor', '#ebcb8b');
 	const labelFontWeight = config.get<string>('labelFontWeight', 'normal');
+	// Define the character pool for labels: lowercase, then uppercase, then digits
+	const labelChars = config.get<string>('labelKeys', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:\'",.<>/`~\\');
 
 	const dimDecoration = vscode.window.createTextEditorDecorationType({
 		color: dimColor
@@ -41,8 +43,6 @@ export function activate(context: vscode.ExtensionContext) {
 	// Map of label character to target position
 	let labelMap: Map<string, { editor: vscode.TextEditor, position: vscode.Position }> = new Map();
 
-	// Define the character pool for labels: lowercase, then uppercase, then digits
-	const labelChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:\'",.<>/`~\\';
 	const searchChars = labelChars;
 
 	// Helper to update all editor decorations based on current query
