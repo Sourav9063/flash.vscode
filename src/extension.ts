@@ -25,6 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
 			color: labelColor,
 			backgroundColor: labelBackgroundColor,
 			fontWeight: labelFontWeight,
+			textDecoration: `none; z-index: 1; position: absolute;`,
 		}
 	});
 	const labelDecorationQuestion = vscode.window.createTextEditorDecorationType({
@@ -32,7 +33,8 @@ export function activate(context: vscode.ExtensionContext) {
 			color: labelColor,
 			backgroundColor: labelQuestionBackgroundColor,
 			contentText: '?',
-			fontWeight: labelFontWeight
+			fontWeight: labelFontWeight,
+			textDecoration: `none; z-index: 1; position: absolute;`,
 		}
 	});
 
@@ -203,12 +205,13 @@ export function activate(context: vscode.ExtensionContext) {
 			// set the character before the match to the label character
 			const ranges = allLabels.filter(m => m.editor === editor);
 			for (let i = 0; i < ranges.length; i++) {
+				const labelRange = ranges[i].range.with(new vscode.Position(ranges[i].range.start.line, ranges[i].range.start.character - searchQuery.length));
 				let char = labelCharsToUse[charCounter];
 				charCounter++;
 				if (char !== '?') {
 					labelMap.set(char, { editor: editor, position: ranges[i].matchStart });
 					decorationOptions.push({
-						range: ranges[i].range,
+						range: labelRange,
 						renderOptions: {
 							before: { contentText: char }
 						}
@@ -216,7 +219,7 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 				else {
 					questionDecorationOptions.push({
-						range: ranges[i].range,
+						range: labelRange,
 						renderOptions: {
 							before: { contentText: '?' }
 						}
