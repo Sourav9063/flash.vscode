@@ -45,7 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// Map of label character to target position
 	let labelMap: Map<string, { editor: vscode.TextEditor, position: vscode.Position }> = new Map();
 
-	const searchChars = labelChars;
+	const searchChars ='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|\\;:\'",.<>/?' ;
 
 	// Helper to update all editor decorations based on current query
 	function updateHighlights() {
