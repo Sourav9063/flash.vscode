@@ -21,11 +21,13 @@
 5. Reload VS Code if prompted.
 
 ## Usage
+### Tutorial
+[Screencast from 2025-05-14 16-22-52.webm](https://github.com/user-attachments/assets/608bd1b3-36e4-4818-8e04-541e6eb1b3ee)
 
 1. **Activate Navigation:**
    Flash VSCode provides two main functionalities:
-   - **`flash-vscode.start`**: Moves the cursor directly to the selected target.
-   - **`flash-vscode.startSelection`**: Extends the selection from the original position to the target.
+   - **`flash-vscode.start`**: `alt+f` Moves the cursor directly to the selected target.
+   - **`flash-vscode.startSelection`**: `alt+shift+f` Extends the selection from the original position to the target.
 
 2. **Cancel Navigation:**
    - Press `Backspace` to remove the last character of your query, or press `Escape` to exit jump mode.
