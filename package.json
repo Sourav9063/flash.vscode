@@ -32,37 +32,37 @@
         },
         "flash-vscode.dimColor": {
           "type": "string",
-          "default": "rgba(128, 128, 128, 0.5)",
+          "default": "rgba(128, 128, 128, 0.6)",
           "description": "Color used to dim text."
         },
         "flash-vscode.matchColor": {
           "type": "string",
-          "default": "rgb(0,191,255)",
+          "default": "#3e68d7",
           "description": "Color used for matched text."
         },
         "flash-vscode.matchFontWeight": {
           "type": "string",
-          "default": "normal",
+          "default": "bold",
           "description": "Font weight for matched text."
         },
         "flash-vscode.labelColor": {
           "type": "string",
-          "default": "black",
+          "default": "#c8c6eb",
           "description": "Color used for label text."
         },
         "flash-vscode.labelBackgroundColor": {
           "type": "string",
-          "default": "#a3be8c",
+          "default": "#ff007c99",
           "description": "Background color for labels."
         },
         "flash-vscode.labelQuestionBackgroundColor": {
           "type": "string",
-          "default": "#ebcb8b",
+          "default": "#3E68D799",
           "description": "Background color for question labels."
         },
         "flash-vscode.labelFontWeight": {
           "type": "string",
-          "default": "normal",
+          "default": "bold",
           "description": "Font weight for label text."
         },
         "flash-vscode.labelKeys": {
