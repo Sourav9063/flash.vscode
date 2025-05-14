@@ -88,6 +88,16 @@
     ],
     "keybindings": [
       {
+        "key": "alt+f",
+        "command": "flash-vscode.start",
+        "when": "editorFocus || editorIsOpen"
+      },
+      {
+        "key": "alt+shift+f",
+        "command": "flash-vscode.startSelection",
+        "when": "editorFocus || editorIsOpen"
+      },
+      {
         "command": "flash-vscode.exit",
         "key": "escape",
         "when": "flash-vscode.active"
