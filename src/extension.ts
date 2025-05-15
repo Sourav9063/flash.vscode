@@ -110,8 +110,17 @@ export function activate(context: vscode.ExtensionContext) {
 				});
 				for (let lineNum = startLine; lineNum <= endLine; lineNum++) {
 					const lineText = document.lineAt(lineNum).text;
-					const textToSearch = caseSensitive ? lineText : lineText.toLowerCase();
-					const queryToSearch = caseSensitive ? searchQuery : searchQuery.toLowerCase();
+					let textToSearch = lineText;
+					let queryToSearch = searchQuery;
+					//if searchQuery contains any uppercase letter the caseSensitivity is ignored
+					if(searchQuery.toLowerCase()!==searchQuery||caseSensitive){
+						textToSearch = lineText;
+						queryToSearch = searchQuery;
+					}
+					else{
+						textToSearch = lineText.toLowerCase();
+						queryToSearch = searchQuery.toLowerCase();
+					}
 					// Search for all occurrences of queryToSearch in this line (case-sensitive)
 					let index = textToSearch.indexOf(queryToSearch);
 					let last_match_index = 0;
@@ -119,7 +128,7 @@ export function activate(context: vscode.ExtensionContext) {
 						const matchStart = new vscode.Position(lineNum, index);
 						const matchEnd = new vscode.Position(lineNum, index + queryToSearch.length);
 						// set nextChar to the character after the match, if it exists
-						const nextChar = textToSearch[index + queryToSearch.length];
+						const nextChar = lineText[index + queryToSearch.length];
 						if (nextChar) {
 							nextChars.push(nextChar);
 						}
