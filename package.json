@@ -15,14 +15,14 @@
     "name": "Sourav Ahmed"
   },
   "license": "MIT",
-  "homepage": "https://github.com/Sourav9063/flash.vscode",
+  "homepage": "https://github.com/Sourav9063/flash.vscode/tree/out",
   "repository": {
     "type": "git",
     "url": "https://github.com/Sourav9063/flash.vscode.git"
   },
   "activationEvents": [],
   "galleryBanner": {
-    "color": "#ff007c",
+    "color": "#010409",
     "theme": "dark"
   },
   "main": "./out/extension.js",
