@@ -28,7 +28,7 @@
       "properties": {
         "flash-vscode.caseSensitive": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "description": "When enabled, search matches will be case sensitive."
         },
         "flash-vscode.dimColor": {

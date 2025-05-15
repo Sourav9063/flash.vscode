@@ -55,7 +55,7 @@ export function activate(context: vscode.ExtensionContext) {
 		labelMap.clear();
 
 		const config = vscode.workspace.getConfiguration('flash-vscode');
-		const caseSensitive = config.get<boolean>('caseSensitive', true);
+		const caseSensitive = config.get<boolean>('caseSensitive', false);
 
 		// If query is empty, simply grey out everything (no matches to highlight)
 		if (searchQuery.length === 0) {
