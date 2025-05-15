@@ -21,11 +21,14 @@
 5. Reload VS Code if prompted.
 
 ## Usage
+
 ### Tutorial
+
 [Screencast from 2025-05-14 16-22-52.webm](https://github.com/user-attachments/assets/608bd1b3-36e4-4818-8e04-541e6eb1b3ee)
 
 1. **Activate Navigation:**
    Flash VSCode provides two main functionalities:
+
    - **`flash-vscode.start`**: `alt+f` Moves the cursor directly to the selected target.
    - **`flash-vscode.startSelection`**: `alt+shift+f` Extends the selection from the original position to the target.
 
@@ -37,11 +40,39 @@
 ### Case Sensitivity
 
 By default, `flash-vscode`'s search is case sensitive. To change this behavior, add to your settings:
+
 ```json
 {
   "flash-vscode.caseSensitive": false
 }
 ```
+
+### Appearance Customization
+
+The following configuration options allow you to customize the visual appearance of Flash VSCode:
+
+```
+{
+  "flash-vscode.dimColor": "rgba(128, 128, 128, 0.5)",
+  "flash-vscode.matchColor": "rgb(0,191,255)",
+  "flash-vscode.matchFontWeight": "normal",
+  "flash-vscode.labelColor": "black",
+  "flash-vscode.labelBackgroundColor": "#a3be8c",
+  "flash-vscode.labelQuestionBackgroundColor": "#ebcb8b",
+  "flash-vscode.labelFontWeight": "normal",
+  "flash-vscode.labelKeys": "hjklyuiopnmqwertzxcvbasdgf",
+
+}
+```
+
+- `flash-vscode.dimColor`: Color used to dim text.
+- `flash-vscode.matchColor`: Color used for matched text.
+- `flash-vscode.matchFontWeight`: Font weight for matched text.
+- `flash-vscode.labelColor`: Color used for label text.
+- `flash-vscode.labelBackgroundColor`: Background color for labels.
+- `flash-vscode.labelQuestionBackgroundColor`: Background color for question labels.
+- `flash-vscode.labelFontWeight`: Font weight for label text.
+- `flash-vscode.labelKeys`: Characters to use for labels.
 
 ### VSCodeVim Integration
 
@@ -56,7 +87,7 @@ To invoke Flash VSCode commands from VSCodeVim, in your `settings.json`, add ent
   {
     "before": ["S"],
     "commands": ["flash-vscode.startSelection"]
-  }, 
+  },
   {
     "before": [ "<BS>" ],
     "commands": [ "flash-vscode.backspace" ]
@@ -66,28 +97,8 @@ To invoke Flash VSCode commands from VSCodeVim, in your `settings.json`, add ent
 
 This configuration triggers Flash VSCode when you press `s` or `S` in normal mode.
 
-### Appearance Customization
-
-The following configuration options allow you to customize the visual appearance of Flash VSCode:
-```
-{
-  "flash-vscode.dimColor": "rgba(128, 128, 128, 0.5)",
-  "flash-vscode.matchColor": "rgb(0,191,255)",
-  "flash-vscode.matchFontWeight": "normal",
-  "flash-vscode.labelColor": "black",
-  "flash-vscode.labelBackgroundColor": "#a3be8c",
-  "flash-vscode.labelQuestionBackgroundColor": "#ebcb8b",
-  "flash-vscode.labelFontWeight": "normal"
-}
-```
-- `flash-vscode.dimColor`: Color used to dim text.
-- `flash-vscode.matchColor`: Color used for matched text.
-- `flash-vscode.matchFontWeight`: Font weight for matched text.
-- `flash-vscode.labelColor`: Color used for label text.
-- `flash-vscode.labelBackgroundColor`: Background color for labels.
-- `flash-vscode.labelQuestionBackgroundColor`: Background color for question labels.
-- `flash-vscode.labelFontWeight`: Font weight for label text.
-
 ## Acknowledgements
-* [flash.nvim](https://github.com/folke/flash.nvim) for the original ideas
-* [Jumpy2](https://marketplace.visualstudio.com/items?itemName=DavidLGoldberg.jumpy2) for some of the implementation details
+
+- [flash.nvim](https://github.com/folke/flash.nvim) for the original ideas
+- [Jumpy2](https://marketplace.visualstudio.com/items?itemName=DavidLGoldberg.jumpy2) for some of the implementation details
+- [flash.vscode](https://github.com/cunbidun/flash.vscode) fork of this extension.

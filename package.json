@@ -1,26 +1,30 @@
 {
-  "name": "flash-vscode",
-  "displayName": "flash.vscode",
+  "name": "flash-vscode-latest",
+  "displayName": "flash.vscode(latest)",
   "description": "Minimal port of the flash.nvim plugin, bringing fast, label-based code navigation to Visual Studio Code",
   "icon": "images/flash.vscode128.png",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.96.0"
   },
   "categories": [
     "Other"
   ],
-  "publisher": "cunbidun",
+  "publisher": "souravahmed",
   "author": {
-    "name": "Duy Pham"
+    "name": "Sourav Ahmed"
   },
   "license": "MIT",
-  "homepage": "https://github.com/cunbidun/flash.vscode",
+  "homepage": "https://github.com/Sourav9063/flash.vscode",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cunbidun/flash.vscode.git"
+    "url": "https://github.com/Sourav9063/flash.vscode.git"
   },
   "activationEvents": [],
+  "galleryBanner": {
+    "color": "#ff007c",
+    "theme": "dark"
+  },
   "main": "./out/extension.js",
   "contributes": {
     "configuration": {
