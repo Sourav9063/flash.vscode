@@ -51,17 +51,16 @@ By default, `flash-vscode`'s search is case sensitive. To change this behavior, 
 
 The following configuration options allow you to customize the visual appearance of Flash VSCode:
 
-```
+```json
 {
-  "flash-vscode.dimColor": "rgba(128, 128, 128, 0.5)",
-  "flash-vscode.matchColor": "rgb(0,191,255)",
-  "flash-vscode.matchFontWeight": "normal",
-  "flash-vscode.labelColor": "black",
-  "flash-vscode.labelBackgroundColor": "#a3be8c",
-  "flash-vscode.labelQuestionBackgroundColor": "#ebcb8b",
-  "flash-vscode.labelFontWeight": "normal",
-  "flash-vscode.labelKeys": "hjklyuiopnmqwertzxcvbasdgf",
-
+  "flash-vscode.dimColor": "rgba(128, 128, 128, 0.6)",
+  "flash-vscode.matchColor": "#3e68d7",
+  "flash-vscode.matchFontWeight": "bold",
+  "flash-vscode.labelColor": "#c8c6eb",
+  "flash-vscode.labelBackgroundColor": "#ff007c99",
+  "flash-vscode.labelQuestionBackgroundColor": "#3E68D799",
+  "flash-vscode.labelFontWeight": "bold",
+  "flash-vscode.labelKeys": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:'\",.<>/?"
 }
 ```
 
