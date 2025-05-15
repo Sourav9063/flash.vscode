@@ -104,6 +104,11 @@
         "when": "flash-vscode.active"
       },
       {
+        "command": "flash-vscode.backspace",
+        "key": "backspace",
+        "when": "flash-vscode.active && editorTextFocus"
+      },
+      {
         "command": "flash-vscode.jump.space",
         "key": "space",
         "when": "flash-vscode.active && editorTextFocus"
