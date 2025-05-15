@@ -31,6 +31,7 @@
 
    - **`flash-vscode.start`**: `alt+f` Moves the cursor directly to the selected target.
    - **`flash-vscode.startSelection`**: `alt+shift+f` Extends the selection from the original position to the target.
+   - Press `alt+f` or `alt+shift+f` then `<search>` then `enter` to goto next match, `shift+enter` to goto previous match.
    - Press `alt+f` or `alt+shift+f` then `enter` to search previously entered query.
 
 2. **Cancel Navigation:**

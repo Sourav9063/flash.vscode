@@ -43,10 +43,17 @@ export function activate(context: vscode.ExtensionContext) {
 	let prevSearchQuery = '';
 	let isSelectionMode = false;
 
+	// Not empty query: find matches in each visible editor
+	interface LocationInfo { editor: vscode.TextEditor, range: vscode.Range, matchStart: vscode.Position }
+	let allMatches: LocationInfo[] = [];
+	let allLabels: LocationInfo[] = [];
+
 	// Map of label character to target position
 	let labelMap: Map<string, { editor: vscode.TextEditor, position: vscode.Position }> = new Map();
 
 	const searchChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~`!@#$%^&*()-_=+[]{}|\\;:\'",.<>/?';
+
+	const unMatchLine = 10;
 
 	// Helper to update all editor decorations based on current query
 	function updateHighlights() {
@@ -74,17 +81,16 @@ export function activate(context: vscode.ExtensionContext) {
 		// show the search query in the status bar
 		vscode.window.setStatusBarMessage(`flash: ${searchQuery}`);
 		labelMap.clear();
-		for (const editor of vscode.window.visibleTextEditors) {
-			if (isSelectionMode && editor !== vscode.window.activeTextEditor) {
-				continue;
-			}
-			editor.setDecorations(dimDecoration, []);
-		}
+		// for (const editor of vscode.window.visibleTextEditors) {
+		// 	if (isSelectionMode && editor !== vscode.window.activeTextEditor) {
+		// 		continue;
+		// 	}
+		// 	editor.setDecorations(dimDecoration, []);
+		// }
 
 		// Not empty query: find matches in each visible editor
-		interface LocationInfo { editor: vscode.TextEditor, range: vscode.Range, matchStart: vscode.Position }
-		let allMatches: LocationInfo[] = [];
-		let allLabels: LocationInfo[] = [];
+		allMatches = [];
+		allLabels = [];
 		const allUnMatches: LocationInfo[] = [];
 		let nextChars: string[] = [];
 
@@ -97,8 +103,8 @@ export function activate(context: vscode.ExtensionContext) {
 				const startLine = visibleRange.start.line;
 				const endLine = visibleRange.end.line;
 				// add some lines before and after the visible range to allUnMatches
-				const startLineUnMatch = Math.max(0, startLine - 5);
-				const endLineUnMatch = Math.min(document.lineCount - 1, endLine + 5);
+				const startLineUnMatch = Math.max(0, startLine - unMatchLine);
+				const endLineUnMatch = Math.min(document.lineCount - 1, endLine + unMatchLine);
 				allUnMatches.push({
 					editor,
 					range: new vscode.Range(new vscode.Position(startLineUnMatch, 0), new vscode.Position(startLine, 0)),
@@ -167,7 +173,7 @@ export function activate(context: vscode.ExtensionContext) {
 			function getDistance(pos1: vscode.Position, pos2: vscode.Position): number {
 				const lineDiff = pos1.line - pos2.line;
 				const charDiff = pos1.character - pos2.character;
-				return lineDiff * lineDiff * 10 + charDiff * charDiff + distanceOffset;
+				return lineDiff * lineDiff * 1000 + charDiff * charDiff + distanceOffset;
 			}
 
 			// Sort the matches by distance from the cursor.
@@ -302,11 +308,11 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	const jump = (target: { editor: vscode.TextEditor, position: vscode.Position }) => {
+	const jump = (target: { editor: vscode.TextEditor, position: vscode.Position }, scroll: boolean = false) => {
 		const targetEditor = target.editor;
 		const targetPos = target.position;
 		targetEditor.selection = new vscode.Selection(isSelectionMode ? targetEditor.selection.anchor : targetPos, targetPos);
-		targetEditor.revealRange(new vscode.Range(targetPos, targetPos));
+		targetEditor.revealRange(new vscode.Range(targetPos, targetPos), scroll ? vscode.TextEditorRevealType.InCenter : vscode.TextEditorRevealType.Default);
 		// If the target is in a different editor, focus that editor
 		if (vscode.window.activeTextEditor !== targetEditor) {
 			vscode.window.showTextDocument(targetEditor.document, targetEditor.viewColumn);
@@ -330,11 +336,35 @@ export function activate(context: vscode.ExtensionContext) {
 				updateHighlights();
 				return;
 			}
-			const [ target0, target1 ] = labelMap.values();
-			const target = chr === 'enter' ? target0 : target1;
-			if (target) {
-				jump(target);
-				updateHighlights();
+			const activeEditor = vscode.window.activeTextEditor;
+			if (activeEditor) {
+				const cursorPos = activeEditor.selection.active;
+				const cursorPosValue = cursorPos.line * 1000 + cursorPos.character;
+				const values = allMatches;
+				let target0;
+				let posMax = Number.MAX_SAFE_INTEGER;
+				let posMin = Number.MIN_SAFE_INTEGER;
+				let target1;
+				for (const value of values) {
+					if (value.editor !== activeEditor) {
+						continue;
+					}
+					const posValue = value.matchStart.line * 1000 + value.matchStart.character - cursorPosValue;
+					if (posValue > 0 && posValue < posMax) {
+						posMax = posValue;
+						target0 = value;
+					}
+					else if (posValue < 0 && posValue > posMin) {
+						posMin = posValue;
+						target1 = value;
+					}
+
+				}
+				const target = chr === 'enter' ? target0 : target1;
+				if (target) {
+					jump({ editor: target.editor, position: target.matchStart }, true);
+					updateHighlights();
+				}
 			}
 			return;
 		}
