@@ -45,7 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// Map of label character to target position
 	let labelMap: Map<string, { editor: vscode.TextEditor, position: vscode.Position }> = new Map();
 
-	const searchChars ='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~`!@#$%^&*()-_=+[]{}|\\;:\'",.<>/?' ;
+	const searchChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~`!@#$%^&*()-_=+[]{}|\\;:\'",.<>/?';
 
 	// Helper to update all editor decorations based on current query
 	function updateHighlights() {
@@ -113,11 +113,11 @@ export function activate(context: vscode.ExtensionContext) {
 					let textToSearch = lineText;
 					let queryToSearch = searchQuery;
 					//if searchQuery contains any uppercase letter the caseSensitivity is ignored
-					if(searchQuery.toLowerCase()!==searchQuery||caseSensitive){
+					if (searchQuery.toLowerCase() !== searchQuery || caseSensitive) {
 						textToSearch = lineText;
 						queryToSearch = searchQuery;
 					}
-					else{
+					else {
 						textToSearch = lineText.toLowerCase();
 						queryToSearch = searchQuery.toLowerCase();
 					}
@@ -128,7 +128,7 @@ export function activate(context: vscode.ExtensionContext) {
 						const matchStart = new vscode.Position(lineNum, index);
 						const matchEnd = new vscode.Position(lineNum, index + queryToSearch.length);
 						// set nextChar to the character after the match, if it exists
-						const nextChar = lineText[index + queryToSearch.length];
+						const nextChar = lineText[ index + queryToSearch.length ];
 						if (nextChar) {
 							nextChars.push(nextChar);
 						}
@@ -187,7 +187,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// Decide how many (if any) to label:
 		const totalMatches = allMatches.length;
 		// deduplicate nextChars
-		const allNextChars = [...new Set(nextChars)];
+		const allNextChars = [ ...new Set(nextChars) ];
 		// all characters that are in labelChars but not in allNextChars
 		const useableLabelChars = labelChars.split('').filter(c => !allNextChars.includes(c));
 
@@ -203,7 +203,7 @@ export function activate(context: vscode.ExtensionContext) {
 		let visibleEditors = vscode.window.visibleTextEditors;
 		// move the active editor to the front of the array
 		if (activeEditor) {
-			visibleEditors = [activeEditor, ...vscode.window.visibleTextEditors.filter(e => e !== activeEditor)];
+			visibleEditors = [ activeEditor, ...vscode.window.visibleTextEditors.filter(e => e !== activeEditor) ];
 		}
 
 		for (const editor of visibleEditors) {
@@ -214,11 +214,11 @@ export function activate(context: vscode.ExtensionContext) {
 			// set the character before the match to the label character
 			const ranges = allLabels.filter(m => m.editor === editor);
 			for (let i = 0; i < ranges.length; i++) {
-				const labelRange = ranges[i].range.with(new vscode.Position(ranges[i].range.start.line, ranges[i].range.start.character - searchQuery.length));
-				let char = labelCharsToUse[charCounter];
+				const labelRange = ranges[ i ].range.with(new vscode.Position(ranges[ i ].range.start.line, ranges[ i ].range.start.character - searchQuery.length));
+				let char = labelCharsToUse[ charCounter ];
 				charCounter++;
 				if (char !== '?') {
-					labelMap.set(char, { editor: editor, position: ranges[i].matchStart });
+					labelMap.set(char, { editor: editor, position: ranges[ i ].matchStart });
 					decorationOptions.push({
 						range: labelRange,
 						renderOptions: {
@@ -345,7 +345,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	let allChars = searchChars.split('').concat(['space']);
+	let allChars = searchChars.split('').concat([ 'space' ]);
 	context.subscriptions.push(configChangeListener, start, startSelection, exit, backspaceHandler, visChange,
 		...allChars.map(c => vscode.commands.registerCommand(`flash-vscode.jump.${c}`, () => handleInput(c)))
 	);
