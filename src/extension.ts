@@ -40,6 +40,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let active = false;
 	let searchQuery = '';
+	let prevSearchQuery = '';
 	let isSelectionMode = false;
 
 	// Map of label character to target position
@@ -52,7 +53,6 @@ export function activate(context: vscode.ExtensionContext) {
 		if (!active) {
 			return;
 		};
-		labelMap.clear();
 
 		const config = vscode.workspace.getConfiguration('flash-vscode');
 		const caseSensitive = config.get<boolean>('caseSensitive', false);
@@ -71,13 +71,14 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 			return;
 		}
-		else {
-			for (const editor of vscode.window.visibleTextEditors) {
-				if (isSelectionMode && editor !== vscode.window.activeTextEditor) {
-					continue;
-				}
-				editor.setDecorations(dimDecoration, []);
+		// show the search query in the status bar
+		vscode.window.setStatusBarMessage(`flash: ${searchQuery}`);
+		labelMap.clear();
+		for (const editor of vscode.window.visibleTextEditors) {
+			if (isSelectionMode && editor !== vscode.window.activeTextEditor) {
+				continue;
 			}
+			editor.setDecorations(dimDecoration, []);
 		}
 
 		// Not empty query: find matches in each visible editor
@@ -121,7 +122,7 @@ export function activate(context: vscode.ExtensionContext) {
 						textToSearch = lineText.toLowerCase();
 						queryToSearch = searchQuery.toLowerCase();
 					}
-					// Search for all occurrences of queryToSearch in this line (case-sensitive)
+					// Search for all occurrences of queryToSearch in this line 
 					let index = textToSearch.indexOf(queryToSearch);
 					let last_match_index = 0;
 					while (index !== -1) {
@@ -159,13 +160,14 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
 		const activeEditor = vscode.window.activeTextEditor;
+		const distanceOffset = 4;
 		if (activeEditor) {
 			const cursorPos = activeEditor.selection.active;
 			// Helper function to compute Euclidean distance between two positions.
 			function getDistance(pos1: vscode.Position, pos2: vscode.Position): number {
 				const lineDiff = pos1.line - pos2.line;
 				const charDiff = pos1.character - pos2.character;
-				return lineDiff * lineDiff * 10 + charDiff * charDiff + 4;
+				return lineDiff * lineDiff * 10 + charDiff * charDiff + distanceOffset;
 			}
 
 			// Sort the matches by distance from the cursor.
@@ -182,6 +184,10 @@ export function activate(context: vscode.ExtensionContext) {
 				const distanceA = getDistance(cursorPos, a.matchStart) * weight_a;
 				const distanceB = getDistance(cursorPos, b.matchStart) * weight_b;
 				return distanceA - distanceB;
+			});
+
+			allLabels = allLabels.filter(a => {
+				return getDistance(cursorPos, a.matchStart) > distanceOffset;
 			});
 		}
 		// Decide how many (if any) to label:
@@ -277,9 +283,11 @@ export function activate(context: vscode.ExtensionContext) {
 			editor.setDecorations(labelDecorationQuestion, []);
 		}
 		active = false;
+		prevSearchQuery = searchQuery;
 		searchQuery = '';
 		labelMap.clear();
 		vscode.commands.executeCommand('setContext', 'flash-vscode.active', false);
+		vscode.window.setStatusBarMessage('');
 	});
 
 	// Handle backspace: remove last character of query
@@ -316,6 +324,21 @@ export function activate(context: vscode.ExtensionContext) {
 			return; // nothing to handle
 		}
 
+		if (chr === 'enter' || chr === 'shiftEnter') {
+			if (searchQuery.length === 0) {
+				searchQuery = prevSearchQuery;
+				updateHighlights();
+				return;
+			}
+			const [ target0, target1 ] = labelMap.values();
+			const target = chr === 'enter' ? target0 : target1;
+			if (target) {
+				jump(target);
+				updateHighlights();
+			}
+			return;
+		}
+
 		// If in navigation mode:
 		// Check if this key corresponds to an active jump label
 		if (labelMap.size > 0 && labelMap.has(text)) {
@@ -345,7 +368,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	let allChars = searchChars.split('').concat([ 'space' ]);
+	let allChars = searchChars.split('').concat([ 'space', 'enter', 'shiftEnter' ]);
 	context.subscriptions.push(configChangeListener, start, startSelection, exit, backspaceHandler, visChange,
 		...allChars.map(c => vscode.commands.registerCommand(`flash-vscode.jump.${c}`, () => handleInput(c)))
 	);
