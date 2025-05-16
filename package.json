@@ -3,7 +3,7 @@
   "displayName": "flash.vscode(latest)",
   "description": "Minimal port of the flash.nvim plugin, bringing fast, label-based code navigation to Visual Studio Code",
   "icon": "images/flash.vscode128.png",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "engines": {
     "vscode": "^1.96.0"
   },

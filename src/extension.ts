@@ -43,17 +43,12 @@ export function activate(context: vscode.ExtensionContext) {
 	let prevSearchQuery = '';
 	let isSelectionMode = false;
 
-	// Not empty query: find matches in each visible editor
-	interface LocationInfo { editor: vscode.TextEditor, range: vscode.Range, matchStart: vscode.Position }
-	let allMatches: LocationInfo[] = [];
-	let allLabels: LocationInfo[] = [];
-
 	// Map of label character to target position
 	let labelMap: Map<string, { editor: vscode.TextEditor, position: vscode.Position }> = new Map();
 
 	const searchChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~`!@#$%^&*()-_=+[]{}|\\;:\'",.<>/?';
 
-	const unMatchLine = 10;
+	const unMatchLine = 5;
 
 	// Helper to update all editor decorations based on current query
 	function updateHighlights() {
@@ -89,8 +84,9 @@ export function activate(context: vscode.ExtensionContext) {
 		// }
 
 		// Not empty query: find matches in each visible editor
-		allMatches = [];
-		allLabels = [];
+		interface LocationInfo { editor: vscode.TextEditor, range: vscode.Range, matchStart: vscode.Position }
+		let allMatches: LocationInfo[] = [];
+		let allLabels: LocationInfo[] = [];
 		const allUnMatches: LocationInfo[] = [];
 		let nextChars: string[] = [];
 
@@ -339,30 +335,18 @@ export function activate(context: vscode.ExtensionContext) {
 			const activeEditor = vscode.window.activeTextEditor;
 			if (activeEditor) {
 				const cursorPos = activeEditor.selection.active;
-				const cursorPosValue = cursorPos.line * 1000 + cursorPos.character;
-				const values = allMatches;
-				let target0;
-				let posMax = Number.MAX_SAFE_INTEGER;
-				let posMin = Number.MIN_SAFE_INTEGER;
-				let target1;
-				for (const value of values) {
-					if (value.editor !== activeEditor) {
-						continue;
-					}
-					const posValue = value.matchStart.line * 1000 + value.matchStart.character - cursorPosValue;
-					if (posValue > 0 && posValue < posMax) {
-						posMax = posValue;
-						target0 = value;
-					}
-					else if (posValue < 0 && posValue > posMin) {
-						posMin = posValue;
-						target1 = value;
-					}
+				const document = activeEditor.document;
+				const documentText = document.getText();
+				const startOffset = document.offsetAt(cursorPos);
+				const searchStartIndexInSubstring = chr === 'enter' ? documentText.indexOf(searchQuery, startOffset + 1) : documentText.lastIndexOf(searchQuery, startOffset - 1);
 
+				if (searchStartIndexInSubstring === -1) {
+					return;
 				}
-				const target = chr === 'enter' ? target0 : target1;
+				const matchStartPosition = document.positionAt(searchStartIndexInSubstring);
+				const target = { editor: activeEditor, position: matchStartPosition };
 				if (target) {
-					jump({ editor: target.editor, position: target.matchStart }, true);
+					jump(target, true);
 					updateHighlights();
 				}
 			}
