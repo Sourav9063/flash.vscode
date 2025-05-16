@@ -26,21 +26,21 @@
 
 [Tutorial Video](https://github.com/user-attachments/assets/b4660aa8-dd2d-4c9f-9622-c01521747a76)
 
-
-
-
 1. **Activate Navigation:**
    Flash VSCode provides two main functionalities:
 
    - **`flash-vscode.start`**: `alt+f` Moves the cursor directly to the selected target.
-   ![flash jump](https://github.com/user-attachments/assets/9a416efd-0927-4df8-b1f1-81d1582f328c)
-![flash select](https://github.com/user-attachments/assets/e3a12392-3ab5-4ff7-a657-f28c4b09da2d)
+
+     ![flash jump](https://github.com/user-attachments/assets/9a416efd-0927-4df8-b1f1-81d1582f328c)
 
    - **`flash-vscode.startSelection`**: `alt+shift+f` Extends the selection from the original position to the target.
+
+     ![flash select](https://github.com/user-attachments/assets/e3a12392-3ab5-4ff7-a657-f28c4b09da2d)
+
    - Press `alt+f` or `alt+shift+f` then `<search>` then `enter` to goto next match, `shift+enter` to goto previous match.
    - Press `alt+f` or `alt+shift+f` then `enter` to search previously entered query.
-![flash enter](https://github.com/user-attachments/assets/e2f932e3-73c6-4acd-9d8c-9937bb116821)
 
+     ![flash enter](https://github.com/user-attachments/assets/e2f932e3-73c6-4acd-9d8c-9937bb116821)
 
 2. **Cancel Navigation:**
    - Press `Backspace` to remove the last character of your query, or press `Escape` to exit jump mode.
@@ -110,4 +110,4 @@ This configuration triggers Flash VSCode when you press `s` or `S` in normal mod
 
 - [flash.nvim](https://github.com/folke/flash.nvim) for the original ideas
 - [Jumpy2](https://marketplace.visualstudio.com/items?itemName=DavidLGoldberg.jumpy2) for some of the implementation details
-- [flash.vscode](https://github.com/cunbidun/flash.vscode) fork of this extension.
+- [flash.vscode](https://github.com/cunbidun/flash.vscode) flash.vscode(latest) extension is supper set of this extension.
