@@ -334,11 +334,23 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 			const activeEditor = vscode.window.activeTextEditor;
 			if (activeEditor) {
+				const caseSensitive = config.get<boolean>('caseSensitive', false);
 				const cursorPos = activeEditor.selection.active;
 				const document = activeEditor.document;
 				const documentText = document.getText();
 				const startOffset = document.offsetAt(cursorPos);
-				const searchStartIndexInSubstring = chr === 'enter' ? documentText.indexOf(searchQuery, startOffset + 1) : documentText.lastIndexOf(searchQuery, startOffset - 1);
+				let textToSearch = documentText;
+				let queryToSearch = searchQuery;
+				//if searchQuery contains any uppercase letter the caseSensitivity is ignored
+				if (searchQuery.toLowerCase() !== searchQuery || caseSensitive) {
+					textToSearch = documentText;
+					queryToSearch = searchQuery;
+				}
+				else {
+					textToSearch = documentText.toLowerCase();
+					queryToSearch = searchQuery.toLowerCase();
+				}
+				const searchStartIndexInSubstring = chr === 'enter' ? textToSearch.indexOf(queryToSearch, startOffset + 1) : textToSearch.lastIndexOf(queryToSearch, startOffset - 1);
 
 				if (searchStartIndexInSubstring === -1) {
 					return;
