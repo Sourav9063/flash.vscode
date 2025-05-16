@@ -30,6 +30,8 @@
    Flash VSCode provides two main functionalities:
 
    - **`flash-vscode.start`**: `alt+f` Moves the cursor directly to the selected target.
+   ![Untitled video - Made with Clipchamp](https://github.com/user-attachments/assets/9a416efd-0927-4df8-b1f1-81d1582f328c)
+
    - **`flash-vscode.startSelection`**: `alt+shift+f` Extends the selection from the original position to the target.
    - Press `alt+f` or `alt+shift+f` then `<search>` then `enter` to goto next match, `shift+enter` to goto previous match.
    - Press `alt+f` or `alt+shift+f` then `enter` to search previously entered query.
