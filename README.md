@@ -24,17 +24,23 @@
 
 ### Tutorial
 
-[Screencast from 2025-05-14 16-22-52.webm](https://github.com/user-attachments/assets/608bd1b3-36e4-4818-8e04-541e6eb1b3ee)
+[Tutorial Video](https://github.com/user-attachments/assets/b4660aa8-dd2d-4c9f-9622-c01521747a76)
+
+
+
 
 1. **Activate Navigation:**
    Flash VSCode provides two main functionalities:
 
    - **`flash-vscode.start`**: `alt+f` Moves the cursor directly to the selected target.
-   ![Untitled video - Made with Clipchamp](https://github.com/user-attachments/assets/9a416efd-0927-4df8-b1f1-81d1582f328c)
+   ![flash jump](https://github.com/user-attachments/assets/9a416efd-0927-4df8-b1f1-81d1582f328c)
+![flash select](https://github.com/user-attachments/assets/e3a12392-3ab5-4ff7-a657-f28c4b09da2d)
 
    - **`flash-vscode.startSelection`**: `alt+shift+f` Extends the selection from the original position to the target.
    - Press `alt+f` or `alt+shift+f` then `<search>` then `enter` to goto next match, `shift+enter` to goto previous match.
    - Press `alt+f` or `alt+shift+f` then `enter` to search previously entered query.
+![flash enter](https://github.com/user-attachments/assets/e2f932e3-73c6-4acd-9d8c-9937bb116821)
+
 
 2. **Cancel Navigation:**
    - Press `Backspace` to remove the last character of your query, or press `Escape` to exit jump mode.
