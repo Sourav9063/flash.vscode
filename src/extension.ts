@@ -48,7 +48,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const searchChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~`!@#$%^&*()-_=+[]{}|\\;:\'",.<>/?';
 
-	const unMatchLine = 5;
 
 	// Helper to update all editor decorations based on current query
 	function updateHighlights() {
@@ -87,30 +86,17 @@ export function activate(context: vscode.ExtensionContext) {
 		interface LocationInfo { editor: vscode.TextEditor, range: vscode.Range, matchStart: vscode.Position }
 		let allMatches: LocationInfo[] = [];
 		let allLabels: LocationInfo[] = [];
-		const allUnMatches: LocationInfo[] = [];
 		let nextChars: string[] = [];
 
 		for (const editor of vscode.window.visibleTextEditors) {
 			if (isSelectionMode && editor !== vscode.window.activeTextEditor) {
 				continue;
 			}
+			editor.setDecorations(dimDecoration, editor.visibleRanges);
 			const document = editor.document;
 			for (const visibleRange of editor.visibleRanges) {
 				const startLine = visibleRange.start.line;
 				const endLine = visibleRange.end.line;
-				// add some lines before and after the visible range to allUnMatches
-				const startLineUnMatch = Math.max(0, startLine - unMatchLine);
-				const endLineUnMatch = Math.min(document.lineCount - 1, endLine + unMatchLine);
-				allUnMatches.push({
-					editor,
-					range: new vscode.Range(new vscode.Position(startLineUnMatch, 0), new vscode.Position(startLine, 0)),
-					matchStart: new vscode.Position(startLineUnMatch, 0)
-				});
-				allUnMatches.push({
-					editor,
-					range: new vscode.Range(new vscode.Position(endLine + 1, 0), new vscode.Position(endLineUnMatch, 0)),
-					matchStart: new vscode.Position(endLine, 0)
-				});
 				for (let lineNum = startLine; lineNum <= endLine; lineNum++) {
 					const lineText = document.lineAt(lineNum).text;
 					let textToSearch = lineText;
@@ -126,7 +112,6 @@ export function activate(context: vscode.ExtensionContext) {
 					}
 					// Search for all occurrences of queryToSearch in this line 
 					let index = textToSearch.indexOf(queryToSearch);
-					let last_match_index = 0;
 					while (index !== -1) {
 						const matchStart = new vscode.Position(lineNum, index);
 						const matchEnd = new vscode.Position(lineNum, index + queryToSearch.length);
@@ -139,23 +124,7 @@ export function activate(context: vscode.ExtensionContext) {
 						const labelStart = new vscode.Position(lineNum, index + queryToSearch.length);
 						const labelEnd = new vscode.Position(lineNum, index + queryToSearch.length + 1);
 						allLabels.push({ editor, range: new vscode.Range(labelStart, labelEnd), matchStart: matchStart });
-						// continue searching from just after this match start
-						if (last_match_index < index) {
-							allUnMatches.push({
-								editor,
-								range: new vscode.Range(new vscode.Position(lineNum, last_match_index), matchStart),
-								matchStart: new vscode.Position(lineNum, index - 1)
-							});
-						}
-						last_match_index = index + queryToSearch.length;
 						index = textToSearch.indexOf(queryToSearch, index + 1);
-					}
-					if (last_match_index < textToSearch.length) {
-						allUnMatches.push({
-							editor,
-							range: new vscode.Range(new vscode.Position(lineNum, last_match_index), new vscode.Position(lineNum, textToSearch.length)),
-							matchStart: new vscode.Position(lineNum, textToSearch.length - 1)
-						});
 					}
 				}
 			}
@@ -218,7 +187,6 @@ export function activate(context: vscode.ExtensionContext) {
 			const decorationOptions: vscode.DecorationOptions[] = [];
 			const questionDecorationOptions: vscode.DecorationOptions[] = [];
 			editor.setDecorations(matchDecoration, allMatches.filter(m => m.editor === editor).map(m => m.range));
-			editor.setDecorations(dimDecoration, allUnMatches.filter(m => m.editor === editor).map(m => m.range));
 			// set the character before the match to the label character
 			const ranges = allLabels.filter(m => m.editor === editor);
 			for (let i = 0; i < ranges.length; i++) {
