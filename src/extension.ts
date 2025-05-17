@@ -19,6 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const matchDecoration = vscode.window.createTextEditorDecorationType({
 		color: matchColor,
 		fontWeight: matchFontWeight,
+		textDecoration: `none; z-index: 1; color: ${matchColor} !important;`,
 	});
 	const labelDecoration = vscode.window.createTextEditorDecorationType({
 		before: {
@@ -58,18 +59,20 @@ export function activate(context: vscode.ExtensionContext) {
 		const config = vscode.workspace.getConfiguration('flash-vscode');
 		const caseSensitive = config.get<boolean>('caseSensitive', false);
 
-		// If query is empty, simply grey out everything (no matches to highlight)
-		if (searchQuery.length === 0) {
-			// Grey-out all visible text
-			for (const editor of vscode.window.visibleTextEditors) {
-				if (isSelectionMode && editor !== vscode.window.activeTextEditor) {
-					continue;
-				}
-				// Apply dim decoration to full visible ranges of each editor
-				editor.setDecorations(dimDecoration, editor.visibleRanges);
+		// Grey-out all visible text
+		for (const editor of vscode.window.visibleTextEditors) {
+			if (isSelectionMode && editor !== vscode.window.activeTextEditor) {
+				continue;
+			}
+			// Apply dim decoration to full visible ranges of each editor
+			editor.setDecorations(dimDecoration, editor.visibleRanges);
+			if (searchQuery.length === 0) {
 				editor.setDecorations(labelDecoration, []);
 				editor.setDecorations(labelDecorationQuestion, []);
 			}
+		}
+		// If query is empty, simply grey out everything (no matches to highlight)
+		if (searchQuery.length === 0) {
 			return;
 		}
 		// show the search query in the status bar
@@ -92,7 +95,6 @@ export function activate(context: vscode.ExtensionContext) {
 			if (isSelectionMode && editor !== vscode.window.activeTextEditor) {
 				continue;
 			}
-			editor.setDecorations(dimDecoration, editor.visibleRanges);
 			const document = editor.document;
 			for (const visibleRange of editor.visibleRanges) {
 				const startLine = visibleRange.start.line;
@@ -275,7 +277,10 @@ export function activate(context: vscode.ExtensionContext) {
 	const jump = (target: { editor: vscode.TextEditor, position: vscode.Position }, scroll: boolean = false) => {
 		const targetEditor = target.editor;
 		const targetPos = target.position;
-		targetEditor.selection = new vscode.Selection(isSelectionMode ? targetEditor.selection.anchor : targetPos, targetPos);
+		const selectFrom = isSelectionMode ? targetEditor.selection.anchor : targetPos;
+		const isForward = targetEditor.selection.anchor.isBefore(targetPos);
+		const selectTo = isSelectionMode ? new vscode.Position(targetPos.line, targetPos.character + (isForward ? 1 : 0)) : targetPos;
+		targetEditor.selection = new vscode.Selection(selectFrom, selectTo);
 		targetEditor.revealRange(new vscode.Range(targetPos, targetPos), scroll ? vscode.TextEditorRevealType.InCenter : vscode.TextEditorRevealType.Default);
 		// If the target is in a different editor, focus that editor
 		if (vscode.window.activeTextEditor !== targetEditor) {

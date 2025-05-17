@@ -137,6 +137,11 @@
         "when": "flash-vscode.active && editorTextFocus"
       },
       {
+        "key": "ctrl+enter",
+        "command": "flash-vscode.jump.symbol",
+        "when": "flash-vscode.active && editorTextFocus"
+      },
+      {
         "command": "flash-vscode.jump.space",
         "key": "space",
         "when": "flash-vscode.active && editorTextFocus"
