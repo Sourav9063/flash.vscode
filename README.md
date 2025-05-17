@@ -45,11 +45,11 @@
 2. **Cancel Navigation:**
    - Press `Backspace` to remove the last character of your query, or press `Escape` to exit jump mode.
 
-## Configuration
+## Configuration (Need to Reload VSCode)
 
 ### Case Sensitivity
 
-By default, `flash-vscode`'s search is case sensitive. To change this behavior, add to your settings:
+By default, `flash-vscode`'s search is smart case insensitive. If any uppercase latter exists then becomes case sensitive. To change this behavior, add to your settings:
 
 ```json
 {

@@ -3,15 +3,16 @@ import * as vscode from 'vscode';
 export function activate(context: vscode.ExtensionContext) {
 	// Decoration types for grey-out, highlight, and labels:
 	const config = vscode.workspace.getConfiguration('flash-vscode');
-	const dimColor = config.get<string>('dimColor', 'rgba(128, 128, 128, 0.6)');
-	const matchColor = config.get<string>('matchColor', '#3e68d7');
-	const matchFontWeight = config.get<string>('matchFontWeight', 'bold');
-	const labelColor = config.get<string>('labelColor', '#c8c6eb');
-	const labelBackgroundColor = config.get<string>('labelBackgroundColor', '#ff007c99');
-	const labelQuestionBackgroundColor = config.get<string>('labelQuestionBackgroundColor', '#3E68D799');
-	const labelFontWeight = config.get<string>('labelFontWeight', 'bold');
+	let dimColor = config.get<string>('dimColor', 'rgba(128, 128, 128, 0.6)');
+	let matchColor = config.get<string>('matchColor', '#3e68d7');
+	let matchFontWeight = config.get<string>('matchFontWeight', 'bold');
+	let labelColor = config.get<string>('labelColor', '#c8c6eb');
+	let labelBackgroundColor = config.get<string>('labelBackgroundColor', '#ff007c99');
+	let labelQuestionBackgroundColor = config.get<string>('labelQuestionBackgroundColor', '#3E68D799');
+	let labelFontWeight = config.get<string>('labelFontWeight', 'bold');
 	// Define the character pool for labels: lowercase, then uppercase, then digits
-	const labelChars = config.get<string>('labelKeys', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:\'",.<>/`~\\');
+	let labelChars = config.get<string>('labelKeys', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:\'",.<>/`~\\');
+	let caseSensitive = config.get<boolean>('caseSensitive', false);
 
 	const dimDecoration = vscode.window.createTextEditorDecorationType({
 		color: dimColor
@@ -57,9 +58,11 @@ export function activate(context: vscode.ExtensionContext) {
 			return;
 		};
 
-		const config = vscode.workspace.getConfiguration('flash-vscode');
-		const caseSensitive = config.get<boolean>('caseSensitive', false);
-
+		if (searchQuery.toLowerCase() !== searchQuery) {
+			caseSensitive = true;
+		} else {
+			caseSensitive = config.get<boolean>('caseSensitive', false);
+		}
 		// show the search query in the status bar
 		vscode.window.setStatusBarMessage(`flash: ${searchQuery}`);
 		labelMap.clear();
@@ -94,7 +97,7 @@ export function activate(context: vscode.ExtensionContext) {
 					let textToSearch = lineText;
 					let queryToSearch = searchQuery;
 					//if searchQuery contains any uppercase letter the caseSensitivity is ignored
-					if (searchQuery.toLowerCase() !== searchQuery || caseSensitive) {
+					if (caseSensitive) {
 						textToSearch = lineText;
 						queryToSearch = searchQuery;
 					}
@@ -111,6 +114,9 @@ export function activate(context: vscode.ExtensionContext) {
 						const nextChar = lineText[ index + queryToSearch.length ];
 						if (nextChar) {
 							nextChars.push(nextChar);
+							if (queryToSearch) {
+								nextChars.push(nextChar.toLowerCase());
+							}
 						}
 						allMatches.push({ editor, range: new vscode.Range(matchStart, matchEnd), matchStart: matchStart });
 						index = textToSearch.indexOf(queryToSearch, index + 1);
@@ -297,7 +303,6 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 			const activeEditor = vscode.window.activeTextEditor;
 			if (activeEditor) {
-				const caseSensitive = config.get<boolean>('caseSensitive', false);
 				const cursorPos = activeEditor.selection.active;
 				const document = activeEditor.document;
 				const documentText = document.getText();
@@ -351,14 +356,15 @@ export function activate(context: vscode.ExtensionContext) {
 			updateHighlights();
 		}
 	});
-	const configChangeListener = vscode.workspace.onDidChangeConfiguration(event => {
-		if (event.affectsConfiguration('flash-vscode.caseInsensitive')) {
-			updateHighlights();
-		}
-	});
+	// const configChangeListener = vscode.workspace.onDidChangeConfiguration(event => {
+	// 	if (event.affectsConfiguration('flash-vscode.caseInsensitive')) {
+	// 		updateHighlights();
+	// 	}
+	// });
 
 	let allChars = searchChars.split('').concat([ 'space', 'enter', 'shiftEnter' ]);
-	context.subscriptions.push(configChangeListener, start, startSelection, exit, backspaceHandler, visChange,
+	// context.subscriptions.push(configChangeListener, start, startSelection, exit, backspaceHandler, visChange,
+	context.subscriptions.push(start, startSelection, exit, backspaceHandler, visChange,
 		...allChars.map(c => vscode.commands.registerCommand(`flash-vscode.jump.${c}`, () => handleInput(c)))
 	);
 }
