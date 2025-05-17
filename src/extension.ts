@@ -60,22 +60,6 @@ export function activate(context: vscode.ExtensionContext) {
 		const config = vscode.workspace.getConfiguration('flash-vscode');
 		const caseSensitive = config.get<boolean>('caseSensitive', false);
 
-		// Grey-out all visible text
-		for (const editor of vscode.window.visibleTextEditors) {
-			if (isSelectionMode && editor !== vscode.window.activeTextEditor) {
-				continue;
-			}
-			// Apply dim decoration to full visible ranges of each editor
-			editor.setDecorations(dimDecoration, editor.visibleRanges);
-			if (searchQuery.length === 0) {
-				editor.setDecorations(labelDecoration, []);
-				editor.setDecorations(labelDecorationQuestion, []);
-			}
-		}
-		// If query is empty, simply grey out everything (no matches to highlight)
-		if (searchQuery.length === 0) {
-			return;
-		}
 		// show the search query in the status bar
 		vscode.window.setStatusBarMessage(`flash: ${searchQuery}`);
 		labelMap.clear();
@@ -89,12 +73,17 @@ export function activate(context: vscode.ExtensionContext) {
 		// Not empty query: find matches in each visible editor
 		interface LocationInfo { editor: vscode.TextEditor, range: vscode.Range, matchStart: vscode.Position }
 		let allMatches: LocationInfo[] = [];
-		let allLabels: LocationInfo[] = [];
 		let nextChars: string[] = [];
 
 		for (const editor of vscode.window.visibleTextEditors) {
 			if (isSelectionMode && editor !== vscode.window.activeTextEditor) {
 				continue;
+			}
+			editor.setDecorations(dimDecoration, editor.visibleRanges);
+			if (searchQuery.length === 0) {
+				editor.setDecorations(labelDecoration, []);
+				editor.setDecorations(labelDecorationQuestion, []);
+				return;
 			}
 			const document = editor.document;
 			for (const visibleRange of editor.visibleRanges) {
@@ -124,9 +113,6 @@ export function activate(context: vscode.ExtensionContext) {
 							nextChars.push(nextChar);
 						}
 						allMatches.push({ editor, range: new vscode.Range(matchStart, matchEnd), matchStart: matchStart });
-						const labelStart = new vscode.Position(lineNum, index + queryToSearch.length);
-						const labelEnd = new vscode.Position(lineNum, index + queryToSearch.length + 1);
-						allLabels.push({ editor, range: new vscode.Range(labelStart, labelEnd), matchStart: matchStart });
 						index = textToSearch.indexOf(queryToSearch, index + 1);
 					}
 				}
@@ -145,7 +131,7 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 
 			// Sort the matches by distance from the cursor.
-			allLabels.sort((a, b) => {
+			allMatches.sort((a, b) => {
 				let weight_a = 1;
 				let weight_b = 1;
 				if (a.editor !== activeEditor) {
@@ -159,10 +145,13 @@ export function activate(context: vscode.ExtensionContext) {
 				const distanceB = getDistance(cursorPos, b.matchStart) * weight_b;
 				return distanceA - distanceB;
 			});
+			if (allMatches.length > 0) {
+				const label = allMatches[ 0 ];
+				if (getDistance(cursorPos, label.matchStart) === distanceOffset) {
+					allMatches.shift();
+				}
+			}
 
-			allLabels = allLabels.filter(a => {
-				return getDistance(cursorPos, a.matchStart) > distanceOffset;
-			});
 		}
 		// Decide how many (if any) to label:
 		const totalMatches = allMatches.length;
@@ -191,9 +180,9 @@ export function activate(context: vscode.ExtensionContext) {
 			const questionDecorationOptions: vscode.DecorationOptions[] = [];
 			editor.setDecorations(matchDecoration, allMatches.filter(m => m.editor === editor).map(m => m.range));
 			// set the character before the match to the label character
-			const ranges = allLabels.filter(m => m.editor === editor);
+			const ranges = allMatches.filter(m => m.editor === editor);
 			for (let i = 0; i < ranges.length; i++) {
-				const labelRange = ranges[ i ].range.with(new vscode.Position(ranges[ i ].range.start.line, ranges[ i ].range.start.character - searchQuery.length));
+				const labelRange = ranges[ i ].range;
 				let char = labelCharsToUse[ charCounter ];
 				charCounter++;
 				if (char !== '?') {
