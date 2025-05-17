@@ -44,15 +44,51 @@ export function activate(context: vscode.ExtensionContext) {
 	let searchQuery = '';
 	let prevSearchQuery = '';
 	let isSelectionMode = false;
+	let isSymbolMode = false; // State to indicate if we are in symbol/outline mode
+	let symbols: vscode.DocumentSymbol[] = [];
 
 	// Map of label character to target position
 	let labelMap: Map<string, { editor: vscode.TextEditor, position: vscode.Position }> = new Map();
 
+	interface LocationInfo { editor: vscode.TextEditor, range: vscode.Range, matchStart: vscode.Position }
+	let allMatches: LocationInfo[] = [];
+
 	const searchChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~`!@#$%^&*()-_=+[]{}|\\;:\'",.<>/?';
 
+	async function getOutlineRangesForVisibleEditors(editor: vscode.TextEditor) {
+
+		const document = editor.document;
+		const documentUri = document.uri;
+
+		try {
+			symbols = symbols.length === 0 ? symbols = await vscode.commands.executeCommand<vscode.DocumentSymbol[]>(
+				'vscode.executeDocumentSymbolProvider',
+				documentUri
+			) : symbols;
+
+			if (symbols) {
+				logSymbolRanges(symbols, editor);
+			} else {
+			}
+
+		} catch (error) {
+		}
+	}
+
+	function logSymbolRanges(symbols: vscode.DocumentSymbol[], editor: vscode.TextEditor, indent: string = '') {
+		for (const symbol of symbols) {
+			const range = symbol.range;
+			editor.visibleRanges[ 0 ].contains(range) && allMatches.push({ editor, range: new vscode.Range(range.start, new vscode.Position(range.start.line, range.start.character + symbol.name.length)), matchStart: range.start });
+			if (symbol.children.length > 0) {
+				logSymbolRanges(symbol.children, editor, indent + '  ');
+			}
+		}
+	}
+
+	// Example usage: Call this function to get outline ranges for all visible editors
 
 	// Helper to update all editor decorations based on current query
-	function updateHighlights() {
+	async function updateHighlights() {
 		if (!active) {
 			return;
 		};
@@ -60,8 +96,8 @@ export function activate(context: vscode.ExtensionContext) {
 		const config = vscode.workspace.getConfiguration('flash-vscode');
 		const caseSensitive = config.get<boolean>('caseSensitive', false);
 
-		// show the search query in the status bar
-		vscode.window.setStatusBarMessage(`flash: ${searchQuery}`);
+		// show the search query or mode in the status bar
+		vscode.window.setStatusBarMessage(`flash: ${isSymbolMode ? 'Symbol' : searchQuery}`);
 		labelMap.clear();
 		// for (const editor of vscode.window.visibleTextEditors) {
 		// 	if (isSelectionMode && editor !== vscode.window.activeTextEditor) {
@@ -71,8 +107,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// }
 
 		// Not empty query: find matches in each visible editor
-		interface LocationInfo { editor: vscode.TextEditor, range: vscode.Range, matchStart: vscode.Position }
-		let allMatches: LocationInfo[] = [];
+		allMatches = [];
 		let nextChars: string[] = [];
 
 		for (const editor of vscode.window.visibleTextEditors) {
@@ -83,37 +118,49 @@ export function activate(context: vscode.ExtensionContext) {
 			if (searchQuery.length === 0) {
 				editor.setDecorations(labelDecoration, []);
 				editor.setDecorations(labelDecorationQuestion, []);
-				return;
+				if (!isSymbolMode) {
+					return;
+				}
 			}
 			const document = editor.document;
-			for (const visibleRange of editor.visibleRanges) {
-				const startLine = visibleRange.start.line;
-				const endLine = visibleRange.end.line;
-				for (let lineNum = startLine; lineNum <= endLine; lineNum++) {
-					const lineText = document.lineAt(lineNum).text;
-					let textToSearch = lineText;
-					let queryToSearch = searchQuery;
-					//if searchQuery contains any uppercase letter the caseSensitivity is ignored
-					if (searchQuery.toLowerCase() !== searchQuery || caseSensitive) {
-						textToSearch = lineText;
-						queryToSearch = searchQuery;
-					}
-					else {
-						textToSearch = lineText.toLowerCase();
-						queryToSearch = searchQuery.toLowerCase();
-					}
-					// Search for all occurrences of queryToSearch in this line 
-					let index = textToSearch.indexOf(queryToSearch);
-					while (index !== -1) {
-						const matchStart = new vscode.Position(lineNum, index);
-						const matchEnd = new vscode.Position(lineNum, index + queryToSearch.length);
-						// set nextChar to the character after the match, if it exists
-						const nextChar = lineText[ index + queryToSearch.length ];
-						if (nextChar) {
-							nextChars.push(nextChar);
+
+			if (isSymbolMode) {
+				try {
+					await getOutlineRangesForVisibleEditors(editor);
+				} catch (error) {
+					console.error('Error fetching document symbols:', error);
+				}
+			} else {
+				// Existing text search logic
+				for (const visibleRange of editor.visibleRanges) {
+					const startLine = visibleRange.start.line;
+					const endLine = visibleRange.end.line;
+					for (let lineNum = startLine; lineNum <= endLine; lineNum++) {
+						const lineText = document.lineAt(lineNum).text;
+						let textToSearch = lineText;
+						let queryToSearch = searchQuery;
+						//if searchQuery contains any uppercase letter the caseSensitivity is ignored
+						if (searchQuery.toLowerCase() !== searchQuery || caseSensitive) {
+							textToSearch = lineText;
+							queryToSearch = searchQuery;
 						}
-						allMatches.push({ editor, range: new vscode.Range(matchStart, matchEnd), matchStart: matchStart });
-						index = textToSearch.indexOf(queryToSearch, index + 1);
+						else {
+							textToSearch = lineText.toLowerCase();
+							queryToSearch = searchQuery.toLowerCase();
+						}
+						// Search for all occurrences of queryToSearch in this line
+						let index = textToSearch.indexOf(queryToSearch);
+						while (index !== -1) {
+							const matchStart = new vscode.Position(lineNum, index);
+							const matchEnd = new vscode.Position(lineNum, index + queryToSearch.length);
+							// set nextChar to the character after the match, if it exists
+							const nextChar = lineText[ index + queryToSearch.length ];
+							if (nextChar) {
+								nextChars.push(nextChar);
+							}
+							allMatches.push({ editor, range: new vscode.Range(matchStart, matchEnd), matchStart: matchStart });
+							index = textToSearch.indexOf(queryToSearch, index + 1);
+						}
 					}
 				}
 			}
@@ -153,8 +200,10 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 
 		}
+
 		// Decide how many (if any) to label:
 		const totalMatches = allMatches.length;
+		console.log({ totalMatches });
 		// deduplicate nextChars
 		const allNextChars = [ ...new Set(nextChars) ];
 		// all characters that are in labelChars but not in allNextChars
@@ -205,10 +254,10 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 			editor.setDecorations(labelDecoration, decorationOptions);
 			editor.setDecorations(labelDecorationQuestion, questionDecorationOptions);
+
 			if (isSelectionMode) {
 				break;
 			}
-
 		}
 	}
 
@@ -217,10 +266,12 @@ export function activate(context: vscode.ExtensionContext) {
 		if (active) { return; };
 		active = true;
 		searchQuery = '';
+		isSymbolMode = false; // Ensure symbol mode is off by default on start
 		labelMap.clear();
+		symbols = [];
 		// Set a context key for when-clause usage (for keybindings)
 		vscode.commands.executeCommand('setContext', 'flash-vscode.active', true);
-		// Initial highlight update (just grey out everything visible)
+		// Initial highlight update (just grey out everything visible and potentially show initial symbols)
 		updateHighlights();
 	};
 
@@ -247,6 +298,8 @@ export function activate(context: vscode.ExtensionContext) {
 		active = false;
 		prevSearchQuery = searchQuery;
 		searchQuery = '';
+		isSelectionMode = false;
+		isSymbolMode = false;
 		labelMap.clear();
 		vscode.commands.executeCommand('setContext', 'flash-vscode.active', false);
 		vscode.window.setStatusBarMessage('');
@@ -287,6 +340,12 @@ export function activate(context: vscode.ExtensionContext) {
 		const text = chr;
 		if (!text) {
 			return; // nothing to handle
+		}
+		if (chr === 'symbol') {
+			isSymbolMode = true;
+			searchQuery = '';
+			updateHighlights();
+			return;
 		}
 
 		if (chr === 'enter' || chr === 'shiftEnter') {
@@ -357,7 +416,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	let allChars = searchChars.split('').concat([ 'space', 'enter', 'shiftEnter' ]);
+	let allChars = searchChars.split('').concat([ 'space', 'enter', 'shiftEnter', 'symbol' ]);
 	context.subscriptions.push(configChangeListener, start, startSelection, exit, backspaceHandler, visChange,
 		...allChars.map(c => vscode.commands.registerCommand(`flash-vscode.jump.${c}`, () => handleInput(c)))
 	);
