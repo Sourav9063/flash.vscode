@@ -18,6 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
 	});
 	const matchDecoration = vscode.window.createTextEditorDecorationType({
 		color: matchColor,
+		backgroundColor: `${matchColor}70`,
 		fontWeight: matchFontWeight,
 		textDecoration: `none; z-index: 1; color: ${matchColor} !important;`,
 	});
