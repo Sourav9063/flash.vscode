@@ -253,6 +253,7 @@ export function activate(context: vscode.ExtensionContext) {
 		active = false;
 		prevSearchQuery = searchQuery;
 		searchQuery = '';
+		isSelectionMode = false;
 		labelMap.clear();
 		vscode.commands.executeCommand('setContext', 'flash-vscode.active', false);
 		vscode.window.setStatusBarMessage('');
