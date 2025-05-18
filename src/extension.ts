@@ -1,7 +1,10 @@
 import * as vscode from 'vscode';
-
+const flashVscodeModes = { idle: 'idle', search: 'search', };
+const flashVscodeModeKey = 'flash-vscode-mode';
+let flashVscodeMode: String = flashVscodeModes.idle;
 export function activate(context: vscode.ExtensionContext) {
 	// Decoration types for grey-out, highlight, and labels:
+	vscode.commands.executeCommand('setContext', flashVscodeModeKey, flashVscodeModes.idle);
 	let config: vscode.WorkspaceConfiguration;
 	let dimDecoration: vscode.TextEditorDecorationType;
 	let matchDecoration: vscode.TextEditorDecorationType;
@@ -20,7 +23,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const getConfiguration = () => {
 		config = vscode.workspace.getConfiguration('flash-vscode');
-		vscode.window.setStatusBarMessage('Loading configuration...');
 		dimColor = config.get<string>('dimColor', 'rgba(128, 128, 128, 0.6)');
 		matchColor = config.get<string>('matchColor', '#3e68d7');
 		matchFontWeight = config.get<string>('matchFontWeight', 'bold');
@@ -85,7 +87,7 @@ export function activate(context: vscode.ExtensionContext) {
 			caseSensitive = config.get<boolean>('caseSensitive', false);
 		}
 		// show the search query in the status bar
-		vscode.window.setStatusBarMessage(`flash: ${searchQuery}`);
+		vscode.window.setStatusBarMessage(searchQuery.length > 0 ? `flash: ${searchQuery}` : '');
 		labelMap.clear();
 		// for (const editor of vscode.window.visibleTextEditors) {
 		// 	if (isSelectionMode && editor !== vscode.window.activeTextEditor) {
@@ -247,6 +249,7 @@ export function activate(context: vscode.ExtensionContext) {
 		labelMap.clear();
 		// Set a context key for when-clause usage (for keybindings)
 		vscode.commands.executeCommand('setContext', 'flash-vscode.active', true);
+		vscode.commands.executeCommand('setContext', flashVscodeModeKey, flashVscodeModes.search);
 		// Initial highlight update (just grey out everything visible)
 		updateHighlights();
 	};
@@ -277,6 +280,7 @@ export function activate(context: vscode.ExtensionContext) {
 		isSelectionMode = false;
 		labelMap.clear();
 		vscode.commands.executeCommand('setContext', 'flash-vscode.active', false);
+		vscode.commands.executeCommand('setContext', flashVscodeModeKey, flashVscodeModes.idle);
 		vscode.window.setStatusBarMessage('');
 	});
 
