@@ -45,7 +45,7 @@
 2. **Cancel Navigation:**
    - Press `Backspace` to remove the last character of your query, or press `Escape` to exit jump mode.
 
-## Configuration (Need to Reload VSCode)
+## Configuration
 
 ### Case Sensitivity
 

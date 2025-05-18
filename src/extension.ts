@@ -2,44 +2,65 @@ import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
 	// Decoration types for grey-out, highlight, and labels:
-	const config = vscode.workspace.getConfiguration('flash-vscode');
-	let dimColor = config.get<string>('dimColor', 'rgba(128, 128, 128, 0.6)');
-	let matchColor = config.get<string>('matchColor', '#3e68d7');
-	let matchFontWeight = config.get<string>('matchFontWeight', 'bold');
-	let labelColor = config.get<string>('labelColor', '#c8c6eb');
-	let labelBackgroundColor = config.get<string>('labelBackgroundColor', '#ff007c99');
-	let labelQuestionBackgroundColor = config.get<string>('labelQuestionBackgroundColor', '#3E68D799');
-	let labelFontWeight = config.get<string>('labelFontWeight', 'bold');
-	// Define the character pool for labels: lowercase, then uppercase, then digits
-	let labelChars = config.get<string>('labelKeys', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:\'",.<>/`~\\');
-	let caseSensitive = config.get<boolean>('caseSensitive', false);
+	let config: vscode.WorkspaceConfiguration;
+	let dimDecoration: vscode.TextEditorDecorationType;
+	let matchDecoration: vscode.TextEditorDecorationType;
+	let labelDecoration: vscode.TextEditorDecorationType;
+	let labelDecorationQuestion: vscode.TextEditorDecorationType;
 
-	const dimDecoration = vscode.window.createTextEditorDecorationType({
-		color: dimColor
-	});
-	const matchDecoration = vscode.window.createTextEditorDecorationType({
-		color: matchColor,
-		backgroundColor: `${matchColor}70`,
-		fontWeight: matchFontWeight,
-		textDecoration: `none; z-index: 1; color: ${matchColor} !important;`,
-	});
-	const labelDecoration = vscode.window.createTextEditorDecorationType({
-		before: {
-			color: labelColor,
-			backgroundColor: labelBackgroundColor,
-			fontWeight: labelFontWeight,
-			textDecoration: `none; z-index: 1; position: absolute;`,
-		}
-	});
-	const labelDecorationQuestion = vscode.window.createTextEditorDecorationType({
-		before: {
-			color: labelColor,
-			backgroundColor: labelQuestionBackgroundColor,
-			contentText: '?',
-			fontWeight: labelFontWeight,
-			textDecoration: `none; z-index: 1; position: absolute;`,
-		}
-	});
+	let dimColor: string;
+	let matchColor: string;
+	let matchFontWeight: string;
+	let labelColor: string;
+	let labelBackgroundColor: string;
+	let labelQuestionBackgroundColor: string;
+	let labelFontWeight: string;
+	let labelChars: string;
+	let caseSensitive: boolean;
+
+	const getConfiguration = () => {
+		config = vscode.workspace.getConfiguration('flash-vscode');
+		vscode.window.setStatusBarMessage('Loading configuration...');
+		dimColor = config.get<string>('dimColor', 'rgba(128, 128, 128, 0.6)');
+		matchColor = config.get<string>('matchColor', '#3e68d7');
+		matchFontWeight = config.get<string>('matchFontWeight', 'bold');
+		labelColor = config.get<string>('labelColor', '#c8c6eb');
+		labelBackgroundColor = config.get<string>('labelBackgroundColor', '#ff007c99');
+		labelQuestionBackgroundColor = config.get<string>('labelQuestionBackgroundColor', '#3E68D799');
+		labelFontWeight = config.get<string>('labelFontWeight', 'bold');
+		// Define the character pool for labels: lowercase, then uppercase, then digits
+		labelChars = config.get<string>('labelKeys', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:\'",.<>/`~\\');
+		caseSensitive = config.get<boolean>('caseSensitive', false);
+
+		dimDecoration = vscode.window.createTextEditorDecorationType({
+			color: dimColor
+		});
+		matchDecoration = vscode.window.createTextEditorDecorationType({
+			color: matchColor,
+			backgroundColor: `${matchColor}70`,
+			fontWeight: matchFontWeight,
+			textDecoration: `none; z-index: 1; color: ${matchColor} !important;`,
+		});
+		labelDecoration = vscode.window.createTextEditorDecorationType({
+			before: {
+				color: labelColor,
+				backgroundColor: labelBackgroundColor,
+				fontWeight: labelFontWeight,
+				textDecoration: `none; z-index: 1; position: absolute;`,
+			}
+		});
+		labelDecorationQuestion = vscode.window.createTextEditorDecorationType({
+			before: {
+				color: labelColor,
+				backgroundColor: labelQuestionBackgroundColor,
+				contentText: '?',
+				fontWeight: labelFontWeight,
+				textDecoration: `none; z-index: 1; position: absolute;`,
+			}
+		});
+
+	};
+	getConfiguration();
 
 	let active = false;
 	let searchQuery = '';
@@ -357,15 +378,15 @@ export function activate(context: vscode.ExtensionContext) {
 			updateHighlights();
 		}
 	});
-	// const configChangeListener = vscode.workspace.onDidChangeConfiguration(event => {
-	// 	if (event.affectsConfiguration('flash-vscode.caseInsensitive')) {
-	// 		updateHighlights();
-	// 	}
-	// });
+	const configChangeListener = vscode.workspace.onDidChangeConfiguration(event => {
+		if (event.affectsConfiguration('flash-vscode')) {
+			getConfiguration();
+			updateHighlights();
+		}
+	});
 
 	let allChars = searchChars.split('').concat([ 'space', 'enter', 'shiftEnter' ]);
-	// context.subscriptions.push(configChangeListener, start, startSelection, exit, backspaceHandler, visChange,
-	context.subscriptions.push(start, startSelection, exit, backspaceHandler, visChange,
+	context.subscriptions.push(configChangeListener, start, startSelection, exit, backspaceHandler, visChange,
 		...allChars.map(c => vscode.commands.registerCommand(`flash-vscode.jump.${c}`, () => handleInput(c)))
 	);
 }
