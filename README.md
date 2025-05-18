@@ -83,7 +83,7 @@ The following configuration options allow you to customize the visual appearance
 - `flash-vscode.labelFontWeight`: Font weight for label text.
 - `flash-vscode.labelKeys`: Characters to use for labels.
 
-### VSCodeVim Integration
+### VSCodeVim Integration (Optional)
 
 To invoke Flash VSCode commands from VSCodeVim, in your `settings.json`, add entries to `"vim.normalModeKeyBindingsNonRecursive"` as follows:
 

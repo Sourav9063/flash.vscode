@@ -325,7 +325,6 @@ export function activate(context: vscode.ExtensionContext) {
 			if (searchQuery.length === 0) {
 				searchQuery = prevSearchQuery;
 				updateHighlights();
-				return;
 			}
 			const activeEditor = vscode.window.activeTextEditor;
 			if (activeEditor) {
