@@ -86,7 +86,7 @@ export function activate(context: vscode.ExtensionContext) {
 			if (searchQuery.length === 0) {
 				editor.setDecorations(labelDecoration, []);
 				editor.setDecorations(labelDecorationQuestion, []);
-				return;
+				continue;
 			}
 			const document = editor.document;
 			for (const visibleRange of editor.visibleRanges) {
