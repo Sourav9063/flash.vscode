@@ -91,7 +91,7 @@ export function activate(context: vscode.ExtensionContext) {
 			) : symbols;
 
 			if (symbols) {
-				logSymbolRanges(symbols, editor);
+				itrSymbol(symbols, editor);
 			} else {
 			}
 
@@ -99,14 +99,18 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	}
 
-	function logSymbolRanges(symbols: vscode.DocumentSymbol[], editor: vscode.TextEditor, indent: string = '') {
+	function itrSymbol(symbols: vscode.DocumentSymbol[], editor: vscode.TextEditor) {
 		for (const symbol of symbols) {
 			const range = symbol.range;
-			editor.visibleRanges[ 0 ].contains(range) && allMatches.push({ editor, range: new vscode.Range(range.start, new vscode.Position(range.start.line, range.start.character + symbol.name.length)), matchStart: range.start });
+			allMatches.push({ editor, range: new vscode.Range(range.start, new vscode.Position(range.start.line, range.start.character + symbol.name.length)), matchStart: range.start });
 			if (symbol.children.length > 0) {
-				logSymbolRanges(symbol.children, editor, indent + '  ');
+				itrSymbol(symbol.children, editor);
 			}
 		}
+	}
+
+	function relativeVsCodePosition(pos: vscode.Position) {
+		return pos.line * 1000 + pos.character;
 	}
 
 	// Example usage: Call this function to get outline ranges for all visible editors
@@ -137,7 +141,7 @@ export function activate(context: vscode.ExtensionContext) {
 		let nextChars: string[] = [];
 
 		for (const editor of vscode.window.visibleTextEditors) {
-			if (isSelectionMode && editor !== vscode.window.activeTextEditor) {
+			if ((isSymbolMode || isSelectionMode) && editor !== vscode.window.activeTextEditor) {
 				continue;
 			}
 			editor.setDecorations(dimDecoration, editor.visibleRanges);
@@ -154,7 +158,6 @@ export function activate(context: vscode.ExtensionContext) {
 				try {
 					await getOutlineRangesForVisibleEditors(editor);
 				} catch (error) {
-					console.error('Error fetching document symbols:', error);
 				}
 			} else {
 				// Existing text search logic
@@ -232,7 +235,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// Decide how many (if any) to label:
 		const totalMatches = allMatches.length;
-		console.log({ totalMatches });
 		// deduplicate nextChars
 		const allNextChars = [ ...new Set(nextChars) ];
 		// all characters that are in labelChars but not in allNextChars
@@ -258,13 +260,13 @@ export function activate(context: vscode.ExtensionContext) {
 			const questionDecorationOptions: vscode.DecorationOptions[] = [];
 			editor.setDecorations(matchDecoration, allMatches.filter(m => m.editor === editor).map(m => m.range));
 			// set the character before the match to the label character
-			const ranges = allMatches.filter(m => m.editor === editor);
-			for (let i = 0; i < ranges.length; i++) {
-				const labelRange = ranges[ i ].range;
+			for (const match of allMatches) {
+				if (match.editor !== editor) { continue; }
+				const labelRange = match.range;
 				let char = labelCharsToUse[ charCounter ];
 				charCounter++;
 				if (char !== '?') {
-					labelMap.set(char, { editor: editor, position: ranges[ i ].matchStart });
+					labelMap.set(char, { editor: editor, position: match.matchStart });
 					decorationOptions.push({
 						range: labelRange,
 						renderOptions: {
@@ -385,31 +387,33 @@ export function activate(context: vscode.ExtensionContext) {
 				updateHighlights();
 			}
 			const activeEditor = vscode.window.activeTextEditor;
-			if (activeEditor) {
+			if (activeEditor && allMatches.length > 0) {
 				const cursorPos = activeEditor.selection.active;
-				const document = activeEditor.document;
-				const documentText = document.getText();
-				const startOffset = document.offsetAt(cursorPos);
-				let textToSearch = documentText;
-				let queryToSearch = searchQuery;
-				//if searchQuery contains any uppercase letter the caseSensitivity is ignored
-				if (searchQuery.toLowerCase() !== searchQuery || caseSensitive) {
-					textToSearch = documentText;
-					queryToSearch = searchQuery;
-				}
-				else {
-					textToSearch = documentText.toLowerCase();
-					queryToSearch = searchQuery.toLowerCase();
-				}
-				const searchStartIndexInSubstring = chr === 'enter' ? textToSearch.indexOf(queryToSearch, startOffset + 1) : textToSearch.lastIndexOf(queryToSearch, startOffset - 1);
+				let target: LocationInfo | undefined;
+				let minDist = Infinity;
+				const curPos = relativeVsCodePosition(cursorPos);
+				for (const m of allMatches) {
+					const mPos = relativeVsCodePosition(m.matchStart);
+					const dist = Math.abs(mPos - curPos);
+					if (chr === 'enter') {
+						if (mPos < curPos || minDist < dist) {
+							continue;
+						}
+						target = m;
+						minDist = dist;
+					} else {
+						if (mPos > curPos || minDist < dist) {
+							continue;
+						}
+						target = m;
+						minDist = curPos - mPos;
+					}
 
-				if (searchStartIndexInSubstring === -1) {
-					return;
 				}
-				const matchStartPosition = document.positionAt(searchStartIndexInSubstring);
-				const target = { editor: activeEditor, position: matchStartPosition };
+
+
 				if (target) {
-					jump(target, true);
+					jump({ editor: target.editor, position: target.matchStart }, true);
 					updateHighlights();
 				}
 			}
