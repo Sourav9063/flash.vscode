@@ -64,6 +64,38 @@ export function activate(context: vscode.ExtensionContext) {
 	};
 	getConfiguration();
 
+	function throttle(func: Function, delay: number) {
+		let timeoutId: NodeJS.Timeout | null = null;
+		let lastArgs: any[] | null = null;
+		let lastThis: any = null;
+
+		const throttled = function (...args: any[]) {
+			lastArgs = args;
+			lastThis = this;
+
+			if (!timeoutId) {
+				timeoutId = setTimeout(() => {
+					func.apply(lastThis, lastArgs);
+					timeoutId = null;
+					lastArgs = null;
+					lastThis = null;
+				}, delay);
+			}
+		};
+
+		// Add a cancel method to clear any pending execution
+		throttled.cancel = () => {
+			if (timeoutId) {
+				clearTimeout(timeoutId);
+				timeoutId = null;
+				lastArgs = null;
+				lastThis = null;
+			}
+		};
+
+		return throttled;
+	}
+
 	let active = false;
 	let searchQuery = '';
 	let prevSearchQuery = '';
@@ -365,6 +397,55 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	};
 
+	const handleEnterOrShiftEnter = (chr: string) => {
+		if (searchQuery.length === 0) {
+			searchQuery = prevSearchQuery;
+			updateHighlights();
+		}
+		const activeEditor = vscode.window.activeTextEditor;
+		if (activeEditor && allMatches.length > 0) {
+			const cursorPos = activeEditor.selection.active;
+			let target: LocationInfo | undefined;
+			let minDist = Infinity;
+			const curPos = relativeVsCodePosition(cursorPos);
+			for (const m of allMatches) {
+				if (m.editor !== activeEditor) {
+					continue;
+				}
+				const mPos = m.relativeDis;
+				const dist = Math.abs(mPos - curPos);
+				if (chr === 'enter') {
+					if (mPos < curPos || minDist < dist) {
+						continue;
+					}
+					target = m;
+					minDist = dist;
+				} else {
+					if (mPos > curPos || minDist < dist) {
+						continue;
+					}
+					target = m;
+					minDist = curPos - mPos;
+				}
+
+			}
+
+
+			if (target) {
+				jump({ editor: target.editor, position: target.matchStart }, true);
+				updateHighlights();
+			} else {
+				vscode.window.showWarningMessage(chr === "enter" ? "No forward match found" : "No backward match found");
+			}
+		}
+		else {
+			vscode.window.showWarningMessage("No match found");
+		}
+		return;
+	};
+
+	const throttledHandleEnterOrShiftEnter = throttle(handleEnterOrShiftEnter, 70);
+
 	// Override the 'type' command to capture alphanumeric/symbol keys while in nav mode
 	const handleInput = (chr: string) => {
 		if (chr === 'space') {
@@ -383,49 +464,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
 		if (chr === 'enter' || chr === 'shiftEnter') {
-			if (searchQuery.length === 0) {
-				searchQuery = prevSearchQuery;
-				updateHighlights();
-			}
-			const activeEditor = vscode.window.activeTextEditor;
-			if (activeEditor && allMatches.length > 0) {
-				const cursorPos = activeEditor.selection.active;
-				let target: LocationInfo | undefined;
-				let minDist = Infinity;
-				const curPos = relativeVsCodePosition(cursorPos);
-				for (const m of allMatches) {
-					if (m.editor !== activeEditor) {
-						continue;
-					}
-					const mPos = m.relativeDis;
-					const dist = Math.abs(mPos - curPos);
-					if (chr === 'enter') {
-						if (mPos < curPos || minDist < dist) {
-							continue;
-						}
-						target = m;
-						minDist = dist;
-					} else {
-						if (mPos > curPos || minDist < dist) {
-							continue;
-						}
-						target = m;
-						minDist = curPos - mPos;
-					}
-
-				}
-
-
-				if (target) {
-					jump({ editor: target.editor, position: target.matchStart }, true);
-					updateHighlights();
-				} else {
-					vscode.window.showWarningMessage(chr === "enter" ? "No forward match found" : "No backward match found");
-				}
-			}
-			else {
-				vscode.window.showWarningMessage("No match found");
-			}
+			throttledHandleEnterOrShiftEnter(chr);
 			return;
 		}
 
