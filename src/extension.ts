@@ -414,18 +414,18 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 				const mPos = m.relativeDis;
 				const dist = Math.abs(mPos - curPos);
-				if (chr === 'enter') {
-					if (mPos < curPos || minDist < dist) {
-						continue;
-					}
-					target = m;
-					minDist = dist;
-				} else {
-					if (mPos > curPos || minDist < dist) {
+				if (chr === 'shiftEnter') {
+					if (mPos >= curPos || minDist < dist) {
 						continue;
 					}
 					target = m;
 					minDist = curPos - mPos;
+				} else {
+					if (mPos <= curPos || minDist < dist) {
+						continue;
+					}
+					target = m;
+					minDist = dist;
 				}
 
 			}
@@ -445,6 +445,7 @@ export function activate(context: vscode.ExtensionContext) {
 	};
 
 	const throttledHandleEnterOrShiftEnter = throttle(handleEnterOrShiftEnter, 70);
+	// const throttledHandleEnterOrShiftEnter250 = throttle(handleEnterOrShiftEnter, 250);
 
 	// Override the 'type' command to capture alphanumeric/symbol keys while in nav mode
 	const handleInput = (chr: string) => {
@@ -481,6 +482,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// Append typed character to the search query
 		searchQuery += text;
+		// throttledHandleEnterOrShiftEnter250();
 		updateHighlights();
 	};
 
