@@ -144,6 +144,7 @@ export function activate(context: vscode.ExtensionContext) {
 			if ((isSymbolMode || isSelectionMode) && editor !== vscode.window.activeTextEditor) {
 				continue;
 			}
+			const isActiveEditor = editor === vscode.window.activeTextEditor;
 			editor.setDecorations(dimDecoration, editor.visibleRanges);
 			if (searchQuery.length === 0) {
 				editor.setDecorations(labelDecoration, []);
@@ -162,8 +163,8 @@ export function activate(context: vscode.ExtensionContext) {
 			} else {
 				// Existing text search logic
 				for (const visibleRange of editor.visibleRanges) {
-					const startLine = visibleRange.start.line;
-					const endLine = visibleRange.end.line;
+					const startLine = isActiveEditor ? 0 : visibleRange.start.line;
+					const endLine = isActiveEditor ? document.lineCount - 1 : visibleRange.end.line;
 					for (let lineNum = startLine; lineNum <= endLine; lineNum++) {
 						const lineText = document.lineAt(lineNum).text;
 						let textToSearch = lineText;
@@ -393,6 +394,9 @@ export function activate(context: vscode.ExtensionContext) {
 				let minDist = Infinity;
 				const curPos = relativeVsCodePosition(cursorPos);
 				for (const m of allMatches) {
+					if (m.editor !== activeEditor) {
+						continue;
+					}
 					const mPos = relativeVsCodePosition(m.matchStart);
 					const dist = Math.abs(mPos - curPos);
 					if (chr === 'enter') {
