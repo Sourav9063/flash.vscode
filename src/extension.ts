@@ -74,7 +74,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// Map of label character to target position
 	let labelMap: Map<string, { editor: vscode.TextEditor, position: vscode.Position }> = new Map();
 
-	interface LocationInfo { editor: vscode.TextEditor, range: vscode.Range, matchStart: vscode.Position }
+	interface LocationInfo { editor: vscode.TextEditor, range: vscode.Range, matchStart: vscode.Position, relativeDis: number }
 	let allMatches: LocationInfo[] = [];
 
 	const searchChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~`!@#$%^&*()-_=+[]{}|\\;:\'",.<>/?';
@@ -102,7 +102,7 @@ export function activate(context: vscode.ExtensionContext) {
 	function itrSymbol(symbols: vscode.DocumentSymbol[], editor: vscode.TextEditor) {
 		for (const symbol of symbols) {
 			const range = symbol.range;
-			allMatches.push({ editor, range: new vscode.Range(range.start, new vscode.Position(range.start.line, range.start.character + symbol.name.length)), matchStart: range.start });
+			allMatches.push({ editor, range: new vscode.Range(range.start, new vscode.Position(range.start.line, range.start.character + symbol.name.length)), matchStart: range.start, relativeDis: relativeVsCodePosition(range.start) });
 			if (symbol.children.length > 0) {
 				itrSymbol(symbol.children, editor);
 			}
@@ -191,7 +191,7 @@ export function activate(context: vscode.ExtensionContext) {
 									nextChars.push(nextChar.toLowerCase());
 								}
 							}
-							allMatches.push({ editor, range: new vscode.Range(matchStart, matchEnd), matchStart: matchStart });
+							allMatches.push({ editor, range: new vscode.Range(matchStart, matchEnd), matchStart: matchStart, relativeDis: relativeVsCodePosition(matchStart) });
 							index = textToSearch.indexOf(queryToSearch, index + 1);
 						}
 					}
@@ -397,7 +397,7 @@ export function activate(context: vscode.ExtensionContext) {
 					if (m.editor !== activeEditor) {
 						continue;
 					}
-					const mPos = relativeVsCodePosition(m.matchStart);
+					const mPos = m.relativeDis;
 					const dist = Math.abs(mPos - curPos);
 					if (chr === 'enter') {
 						if (mPos < curPos || minDist < dist) {
