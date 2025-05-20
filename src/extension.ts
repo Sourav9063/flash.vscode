@@ -419,7 +419,12 @@ export function activate(context: vscode.ExtensionContext) {
 				if (target) {
 					jump({ editor: target.editor, position: target.matchStart }, true);
 					updateHighlights();
+				} else {
+					vscode.window.showWarningMessage(chr === "enter" ? "No forward match found" : "No backward match found");
 				}
+			}
+			else {
+				vscode.window.showWarningMessage("No match found");
 			}
 			return;
 		}
