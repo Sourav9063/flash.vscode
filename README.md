@@ -10,7 +10,8 @@
 
 ## Overview
 
-**Flash VSCode** is a minimal port of the [flash.nvim](https://github.com/folke/flash.nvim) Neovim plugin, bringing fast, label-based code navigation to Visual Studio Code.
+**Flash VSCode** is the easiest way to have the best plugin of Neovim, [flash.nvim](https://github.com/folke/flash.nvim) in Visual Studio Code.
+**You Don't Need To Know VIM to Use Flash VSCode**
 
 ## Installation
 

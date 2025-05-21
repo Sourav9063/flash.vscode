@@ -108,6 +108,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 	interface LocationInfo { editor: vscode.TextEditor, range: vscode.Range, matchStart: vscode.Position, relativeDis: number }
 	let allMatches: LocationInfo[] = [];
+	let allMatchSortByRelativeDis: LocationInfo[] | undefined;
+	let nextMatchIndex: number | undefined;
 
 	const searchChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~`!@#$%^&*()-_=+[]{}|\\;:\'",.<>/?';
 
@@ -365,6 +367,8 @@ export function activate(context: vscode.ExtensionContext) {
 		searchQuery = '';
 		isSymbolMode = false;
 		isSelectionMode = false;
+		allMatchSortByRelativeDis = undefined;
+		nextMatchIndex = undefined;
 		labelMap.clear();
 		vscode.commands.executeCommand('setContext', 'flash-vscode.active', false);
 		vscode.commands.executeCommand('setContext', flashVscodeModeKey, flashVscodeModes.idle);
@@ -408,29 +412,22 @@ export function activate(context: vscode.ExtensionContext) {
 			let target: LocationInfo | undefined;
 			let minDist = Infinity;
 			const curPos = relativeVsCodePosition(cursorPos);
-			for (const m of allMatches) {
-				if (m.editor !== activeEditor) {
-					continue;
-				}
-				const mPos = m.relativeDis;
-				const dist = Math.abs(mPos - curPos);
-				if (chr === 'shiftEnter') {
-					if (mPos >= curPos || minDist < dist) {
-						continue;
-					}
-					target = m;
-					minDist = curPos - mPos;
-				} else {
-					if (mPos <= curPos || minDist < dist) {
-						continue;
-					}
-					target = m;
-					minDist = dist;
-				}
-
+			if (allMatchSortByRelativeDis === undefined) {
+				allMatchSortByRelativeDis = allMatches.filter(m => m.editor === activeEditor).sort((a, b) => a.relativeDis - b.relativeDis);
 			}
-
-
+			if (chr === 'shiftEnter') {
+				nextMatchIndex = nextMatchIndex !== undefined ? nextMatchIndex - 1 : allMatchSortByRelativeDis.findIndex(m => m.relativeDis > curPos);
+				if (nextMatchIndex < 0) {
+					nextMatchIndex = allMatchSortByRelativeDis.length - 1;
+				}
+			}
+			else {
+				nextMatchIndex = nextMatchIndex !== undefined ? nextMatchIndex + 1 : allMatchSortByRelativeDis.findIndex(m => m.relativeDis > curPos);
+				if (nextMatchIndex! >= allMatchSortByRelativeDis.length) {
+					nextMatchIndex = 0;
+				}
+			}
+			target = allMatchSortByRelativeDis[ nextMatchIndex! ];
 			if (target) {
 				jump({ editor: target.editor, position: target.matchStart }, true);
 				updateHighlights();
