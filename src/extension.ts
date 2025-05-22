@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
-const flashVscodeModes = { idle: 'idle', search: 'search', lineUp: 'lineUp', lineDown: 'lineDown', symbol: 'symbol', selection: 'selection', };
+const flashVscodeModes = { idle: 'idle', active: 'active', lineUp: 'lineUp', lineDown: 'lineDown', symbol: 'symbol', selection: 'selection', };
 const flashVscodeModeKey = 'flash-vscode-mode';
-let flashVscodeMode: String = flashVscodeModes.idle;
+let flashVscodeMode: string = flashVscodeModes.idle;
 
-const updateFlashVscodeMode = (mode: String) => {
+const updateFlashVscodeMode = (mode: string) => {
 	flashVscodeMode = mode;
 	vscode.commands.executeCommand('setContext', flashVscodeModeKey, flashVscodeMode);
 };
@@ -104,7 +104,6 @@ export function activate(context: vscode.ExtensionContext) {
 	let active = false;
 	let searchQuery = '';
 	let prevSearchQuery = '';
-	let isSelectionMode = false;
 	let isSymbolMode = false; // State to indicate if we are in symbol/outline mode
 	let symbols: vscode.DocumentSymbol[] = [];
 
@@ -180,7 +179,7 @@ export function activate(context: vscode.ExtensionContext) {
 		let nextChars: string[] = [];
 
 		for (const editor of vscode.window.visibleTextEditors) {
-			if ((isSymbolMode || isSelectionMode || flashVscodeMode === flashVscodeModes.lineDown || flashVscodeMode === flashVscodeModes.lineUp) && editor !== vscode.window.activeTextEditor) {
+			if ([ flashVscodeModes.symbol, flashVscodeModes.selection, flashVscodeModes.lineDown, flashVscodeModes.lineUp ].includes(flashVscodeMode) && editor !== vscode.window.activeTextEditor) {
 				continue;
 			}
 			const isActiveEditor = editor === vscode.window.activeTextEditor;
@@ -338,7 +337,7 @@ export function activate(context: vscode.ExtensionContext) {
 			editor.setDecorations(labelDecoration, decorationOptions);
 			editor.setDecorations(labelDecorationQuestion, questionDecorationOptions);
 
-			if (isSelectionMode) {
+			if (flashVscodeMode === flashVscodeModes.selection) {
 				break;
 			}
 		}
@@ -354,18 +353,17 @@ export function activate(context: vscode.ExtensionContext) {
 		symbols = [];
 		// Set a context key for when-clause usage (for keybindings)
 		vscode.commands.executeCommand('setContext', 'flash-vscode.active', true);
-		updateFlashVscodeMode(flashVscodeModes.search);
 		// Initial highlight update (just grey out everything visible)
 		updateHighlights();
 	};
 
 	const start = vscode.commands.registerCommand('flash-vscode.start', () => {
-		isSelectionMode = false;
+		updateFlashVscodeMode(flashVscodeModes.active);
 		_start();
 	});
 
 	const startSelection = vscode.commands.registerCommand('flash-vscode.startSelection', () => {
-		isSelectionMode = true;
+		updateFlashVscodeMode(flashVscodeModes.selection);
 		_start();
 	});
 
@@ -383,7 +381,6 @@ export function activate(context: vscode.ExtensionContext) {
 		prevSearchQuery = searchQuery;
 		searchQuery = '';
 		isSymbolMode = false;
-		isSelectionMode = false;
 		allMatchSortByRelativeDis = undefined;
 		nextMatchIndex = undefined;
 		labelMap.clear();
@@ -408,9 +405,9 @@ export function activate(context: vscode.ExtensionContext) {
 	const jump = (target: { editor: vscode.TextEditor, position: vscode.Position }, scroll: boolean = false) => {
 		const targetEditor = target.editor;
 		const targetPos = target.position;
-		const selectFrom = isSelectionMode ? targetEditor.selection.anchor : targetPos;
+		const selectFrom = flashVscodeMode === flashVscodeModes.selection ? targetEditor.selection.anchor : targetPos;
 		const isForward = targetEditor.selection.anchor.isBefore(targetPos);
-		const selectTo = isSelectionMode ? new vscode.Position(targetPos.line, targetPos.character + (isForward ? 1 : 0)) : targetPos;
+		const selectTo = flashVscodeMode === flashVscodeModes.selection ? new vscode.Position(targetPos.line, targetPos.character + (isForward ? 1 : 0)) : targetPos;
 		targetEditor.selection = new vscode.Selection(selectFrom, selectTo);
 		targetEditor.revealRange(new vscode.Range(targetPos, targetPos), scroll ? vscode.TextEditorRevealType.InCenter : vscode.TextEditorRevealType.Default);
 		// If the target is in a different editor, focus that editor
