@@ -1,10 +1,15 @@
 import * as vscode from 'vscode';
-const flashVscodeModes = { idle: 'idle', search: 'search', };
+const flashVscodeModes = { idle: 'idle', search: 'search', lineUp: 'lineUp', lineDown: 'lineDown', symbol: 'symbol', selection: 'selection', };
 const flashVscodeModeKey = 'flash-vscode-mode';
 let flashVscodeMode: String = flashVscodeModes.idle;
+
+const updateFlashVscodeMode = (mode: String) => {
+	flashVscodeMode = mode;
+	vscode.commands.executeCommand('setContext', flashVscodeModeKey, flashVscodeMode);
+};
 export function activate(context: vscode.ExtensionContext) {
 	// Decoration types for grey-out, highlight, and labels:
-	vscode.commands.executeCommand('setContext', flashVscodeModeKey, flashVscodeModes.idle);
+	updateFlashVscodeMode(flashVscodeModes.idle);
 	let config: vscode.WorkspaceConfiguration;
 	let dimDecoration: vscode.TextEditorDecorationType;
 	let matchDecoration: vscode.TextEditorDecorationType;
@@ -175,7 +180,7 @@ export function activate(context: vscode.ExtensionContext) {
 		let nextChars: string[] = [];
 
 		for (const editor of vscode.window.visibleTextEditors) {
-			if ((isSymbolMode || isSelectionMode) && editor !== vscode.window.activeTextEditor) {
+			if ((isSymbolMode || isSelectionMode || flashVscodeMode === flashVscodeModes.lineDown || flashVscodeMode === flashVscodeModes.lineUp) && editor !== vscode.window.activeTextEditor) {
 				continue;
 			}
 			const isActiveEditor = editor === vscode.window.activeTextEditor;
@@ -183,7 +188,7 @@ export function activate(context: vscode.ExtensionContext) {
 			if (searchQuery.length === 0) {
 				editor.setDecorations(labelDecoration, []);
 				editor.setDecorations(labelDecorationQuestion, []);
-				if (!isSymbolMode) {
+				if (!isSymbolMode && flashVscodeMode !== flashVscodeModes.lineDown && flashVscodeMode !== flashVscodeModes.lineUp) {
 					continue;
 				}
 			}
@@ -194,7 +199,19 @@ export function activate(context: vscode.ExtensionContext) {
 					await getOutlineRangesForVisibleEditors(editor);
 				} catch (error) {
 				}
-			} else {
+			}
+			else if (flashVscodeMode === flashVscodeModes.lineDown || flashVscodeMode === flashVscodeModes.lineUp) {
+
+				const currentLine = editor.selection.active.line;
+				const itr = flashVscodeMode === flashVscodeModes.lineDown ? 1 : -1;
+
+				for (let i = 0; i < labelChars.length; i++) {
+					const matchStart = new vscode.Position(currentLine + itr * i, 0);
+					allMatches.push({ editor, range: new vscode.Range(matchStart, matchStart), matchStart: matchStart, relativeDis: relativeVsCodePosition(matchStart) });
+				}
+
+			}
+			else {
 				// Existing text search logic
 				for (const visibleRange of editor.visibleRanges) {
 					const startLine = isActiveEditor ? 0 : visibleRange.start.line;
@@ -337,7 +354,7 @@ export function activate(context: vscode.ExtensionContext) {
 		symbols = [];
 		// Set a context key for when-clause usage (for keybindings)
 		vscode.commands.executeCommand('setContext', 'flash-vscode.active', true);
-		vscode.commands.executeCommand('setContext', flashVscodeModeKey, flashVscodeModes.search);
+		updateFlashVscodeMode(flashVscodeModes.search);
 		// Initial highlight update (just grey out everything visible)
 		updateHighlights();
 	};
@@ -371,7 +388,8 @@ export function activate(context: vscode.ExtensionContext) {
 		nextMatchIndex = undefined;
 		labelMap.clear();
 		vscode.commands.executeCommand('setContext', 'flash-vscode.active', false);
-		vscode.commands.executeCommand('setContext', flashVscodeModeKey, flashVscodeModes.idle);
+		flashVscodeMode = flashVscodeModes.idle;
+		vscode.commands.executeCommand('setContext', flashVscodeModeKey, flashVscodeMode);
 		vscode.window.setStatusBarMessage('');
 	});
 
@@ -410,7 +428,6 @@ export function activate(context: vscode.ExtensionContext) {
 		if (activeEditor && allMatches.length > 0) {
 			const cursorPos = activeEditor.selection.active;
 			let target: LocationInfo | undefined;
-			let minDist = Infinity;
 			const curPos = relativeVsCodePosition(cursorPos);
 			if (allMatchSortByRelativeDis === undefined) {
 				allMatchSortByRelativeDis = allMatches.filter(m => m.editor === activeEditor).sort((a, b) => a.relativeDis - b.relativeDis);
@@ -454,33 +471,42 @@ export function activate(context: vscode.ExtensionContext) {
 		if (!text) {
 			return; // nothing to handle
 		}
-		if (chr === 'symbol') {
-			isSymbolMode = true;
-			searchQuery = '';
-			updateHighlights();
-			return;
+
+		switch (chr) {
+			case 'symbol':
+				isSymbolMode = true;
+				searchQuery = '';
+				updateHighlights();
+				return;
+			case 'lineUp':
+				updateFlashVscodeMode(flashVscodeModes.lineUp);
+				searchQuery = '';
+				updateHighlights();
+				return;
+			case 'lineDown':
+				updateFlashVscodeMode(flashVscodeModes.lineDown);
+				searchQuery = '';
+				updateHighlights();
+				return;
+			case 'enter':
+			case 'shiftEnter':
+				throttledHandleEnterOrShiftEnter(chr);
+				return;
+			default:
+				if (labelMap.size > 0 && labelMap.has(text)) {
+					// We have a label matching this key – perform the jump
+					const target = labelMap.get(text)!;
+					jump(target);
+					// Exit navigation mode after jumping
+					vscode.commands.executeCommand('flash-vscode.exit');
+					return;
+				}
+				// Append typed character to the search query
+				searchQuery += text;
+				// throttledHandleEnterOrShiftEnter250();
+				updateHighlights();
 		}
 
-		if (chr === 'enter' || chr === 'shiftEnter') {
-			throttledHandleEnterOrShiftEnter(chr);
-			return;
-		}
-
-		// If in navigation mode:
-		// Check if this key corresponds to an active jump label
-		if (labelMap.size > 0 && labelMap.has(text)) {
-			// We have a label matching this key – perform the jump
-			const target = labelMap.get(text)!;
-			jump(target);
-			// Exit navigation mode after jumping
-			vscode.commands.executeCommand('flash-vscode.exit');
-			return;
-		}
-
-		// Append typed character to the search query
-		searchQuery += text;
-		// throttledHandleEnterOrShiftEnter250();
-		updateHighlights();
 	};
 
 	// Listen to editor scroll/visible range changes to update highlights in real-time
@@ -497,7 +523,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	let allChars = searchChars.split('').concat([ 'space', 'enter', 'shiftEnter', 'symbol' ]);
+	let allChars = searchChars.split('').concat([ 'space', 'enter', 'shiftEnter', 'symbol', 'lineDown', 'lineUp' ]);
 	context.subscriptions.push(configChangeListener, start, startSelection, exit, backspaceHandler, visChange,
 		...allChars.map(c => vscode.commands.registerCommand(`flash-vscode.jump.${c}`, () => handleInput(c)))
 	);

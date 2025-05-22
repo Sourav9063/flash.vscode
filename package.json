@@ -138,6 +138,16 @@
         "when": "flash-vscode.active && editorTextFocus"
       },
       {
+        "key": "alt+j",
+        "command": "flash-vscode.jump.lineDown",
+        "when": "flash-vscode-mode!='idle' && editorTextFocus"
+      },
+      {
+        "key": "alt+k",
+        "command": "flash-vscode.jump.lineUp",
+        "when": "flash-vscode-mode!='idle' && editorTextFocus"
+      },
+      {
         "key": "ctrl+enter",
         "command": "flash-vscode.jump.symbol",
         "when": "flash-vscode.active && editorTextFocus"
@@ -639,6 +649,7 @@
     "typescript": "^5.7.3"
   },
   "dependencies": {
-    "@vscode/vsce": "^3.2.2"
+    "@vscode/vsce": "^3.2.2",
+    "yarn": "^1.22.22"
   }
 }
