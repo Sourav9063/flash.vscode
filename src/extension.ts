@@ -316,7 +316,21 @@ export function activate(context: vscode.ExtensionContext) {
 			const questionDecorationOptions: vscode.DecorationOptions[] = [];
 			editor.setDecorations(matchDecoration, allMatches.filter(m => m.editor === editor).map(m => m.range));
 			// set the character before the match to the label character
+			const isActiveEditor = editor === activeEditor;
 			for (const match of allMatches) {
+				let flagOutsideVisibleRange = false;
+				if (isActiveEditor) {
+					for (const visibleRange of editor.visibleRanges) {
+						if (match.matchStart.line < visibleRange.start.line || match.matchStart.line > visibleRange.end.line) {
+							flagOutsideVisibleRange = true;
+							continue;
+						}
+					}
+					if (flagOutsideVisibleRange) {
+						continue;
+					}
+				}
+
 				if (match.editor !== editor) { continue; }
 				const labelRange = match.range;
 				let char = labelCharsToUse[ charCounter ];
