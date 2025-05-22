@@ -7,6 +7,12 @@ const updateFlashVscodeMode = (mode: string) => {
 	flashVscodeMode = mode;
 	vscode.commands.executeCommand('setContext', flashVscodeModeKey, flashVscodeMode);
 };
+
+const isMode = (...modes: string[]) => {
+	return modes.includes(flashVscodeMode);
+};
+
+
 export function activate(context: vscode.ExtensionContext) {
 	// Decoration types for grey-out, highlight, and labels:
 	updateFlashVscodeMode(flashVscodeModes.idle);
@@ -104,7 +110,6 @@ export function activate(context: vscode.ExtensionContext) {
 	let active = false;
 	let searchQuery = '';
 	let prevSearchQuery = '';
-	let isSymbolMode = false; // State to indicate if we are in symbol/outline mode
 	let symbols: vscode.DocumentSymbol[] = [];
 
 	// Map of label character to target position
@@ -165,7 +170,7 @@ export function activate(context: vscode.ExtensionContext) {
 			caseSensitive = config.get<boolean>('caseSensitive', false);
 		}
 		// show the search query or mode in the status bar
-		vscode.window.setStatusBarMessage(searchQuery.length > 0 ? `flash: ${isSymbolMode ? 'Symbol' : searchQuery}` : '');
+		vscode.window.setStatusBarMessage(searchQuery.length > 0 ? `flash: ${searchQuery}` : `flash: ${flashVscodeMode}`);
 		labelMap.clear();
 		// for (const editor of vscode.window.visibleTextEditors) {
 		// 	if (isSelectionMode && editor !== vscode.window.activeTextEditor) {
@@ -179,7 +184,7 @@ export function activate(context: vscode.ExtensionContext) {
 		let nextChars: string[] = [];
 
 		for (const editor of vscode.window.visibleTextEditors) {
-			if ([ flashVscodeModes.symbol, flashVscodeModes.selection, flashVscodeModes.lineDown, flashVscodeModes.lineUp ].includes(flashVscodeMode) && editor !== vscode.window.activeTextEditor) {
+			if (isMode(flashVscodeModes.symbol, flashVscodeModes.selection, flashVscodeModes.lineDown, flashVscodeModes.lineUp) && editor !== vscode.window.activeTextEditor) {
 				continue;
 			}
 			const isActiveEditor = editor === vscode.window.activeTextEditor;
@@ -187,22 +192,22 @@ export function activate(context: vscode.ExtensionContext) {
 			if (searchQuery.length === 0) {
 				editor.setDecorations(labelDecoration, []);
 				editor.setDecorations(labelDecorationQuestion, []);
-				if (!isSymbolMode && flashVscodeMode !== flashVscodeModes.lineDown && flashVscodeMode !== flashVscodeModes.lineUp) {
+				if (isMode(flashVscodeModes.active, flashVscodeModes.selection)) {
 					continue;
 				}
 			}
 			const document = editor.document;
 
-			if (isSymbolMode) {
+			if (isMode(flashVscodeModes.symbol)) {
 				try {
 					await getOutlineRangesForVisibleEditors(editor);
 				} catch (error) {
 				}
 			}
-			else if (flashVscodeMode === flashVscodeModes.lineDown || flashVscodeMode === flashVscodeModes.lineUp) {
+			else if (isMode(flashVscodeModes.lineDown, flashVscodeModes.lineUp)) {
 
 				const currentLine = editor.selection.active.line;
-				const itr = flashVscodeMode === flashVscodeModes.lineDown ? 1 : -1;
+				const itr = isMode(flashVscodeModes.lineDown) ? 1 : -1;
 
 				for (let i = 0; i < labelChars.length; i++) {
 					const matchStart = new vscode.Position(currentLine + itr * i, 0);
@@ -337,7 +342,7 @@ export function activate(context: vscode.ExtensionContext) {
 			editor.setDecorations(labelDecoration, decorationOptions);
 			editor.setDecorations(labelDecorationQuestion, questionDecorationOptions);
 
-			if (flashVscodeMode === flashVscodeModes.selection) {
+			if (isMode(flashVscodeModes.selection)) {
 				break;
 			}
 		}
@@ -348,7 +353,6 @@ export function activate(context: vscode.ExtensionContext) {
 		if (active) { return; };
 		active = true;
 		searchQuery = '';
-		isSymbolMode = false; // Ensure symbol mode is off by default on start
 		labelMap.clear();
 		symbols = [];
 		// Set a context key for when-clause usage (for keybindings)
@@ -380,13 +384,11 @@ export function activate(context: vscode.ExtensionContext) {
 		active = false;
 		prevSearchQuery = searchQuery;
 		searchQuery = '';
-		isSymbolMode = false;
 		allMatchSortByRelativeDis = undefined;
 		nextMatchIndex = undefined;
 		labelMap.clear();
 		vscode.commands.executeCommand('setContext', 'flash-vscode.active', false);
-		flashVscodeMode = flashVscodeModes.idle;
-		vscode.commands.executeCommand('setContext', flashVscodeModeKey, flashVscodeMode);
+		updateFlashVscodeMode(flashVscodeModes.idle);
 		vscode.window.setStatusBarMessage('');
 	});
 
@@ -405,9 +407,9 @@ export function activate(context: vscode.ExtensionContext) {
 	const jump = (target: { editor: vscode.TextEditor, position: vscode.Position }, scroll: boolean = false) => {
 		const targetEditor = target.editor;
 		const targetPos = target.position;
-		const selectFrom = flashVscodeMode === flashVscodeModes.selection ? targetEditor.selection.anchor : targetPos;
+		const selectFrom = isMode(flashVscodeModes.selection) ? targetEditor.selection.anchor : targetPos;
 		const isForward = targetEditor.selection.anchor.isBefore(targetPos);
-		const selectTo = flashVscodeMode === flashVscodeModes.selection ? new vscode.Position(targetPos.line, targetPos.character + (isForward ? 1 : 0)) : targetPos;
+		const selectTo = isMode(flashVscodeModes.selection) ? new vscode.Position(targetPos.line, targetPos.character + (isForward ? 1 : 0)) : targetPos;
 		targetEditor.selection = new vscode.Selection(selectFrom, selectTo);
 		targetEditor.revealRange(new vscode.Range(targetPos, targetPos), scroll ? vscode.TextEditorRevealType.InCenter : vscode.TextEditorRevealType.Default);
 		// If the target is in a different editor, focus that editor
@@ -471,7 +473,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		switch (chr) {
 			case 'symbol':
-				isSymbolMode = true;
+				updateFlashVscodeMode(flashVscodeModes.symbol);
 				searchQuery = '';
 				updateHighlights();
 				return;

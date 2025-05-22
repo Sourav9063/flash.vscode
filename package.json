@@ -104,6 +104,22 @@
       {
         "command": "flash-vscode.backspace",
         "title": "flash-vscode: Backspace"
+      },
+      {
+        "command": "flash-vscode.jump.enter",
+        "title": "flash-vscode: Jump to Next Match"
+      },
+      {
+        "command": "flash-vscode.jump.shiftEnter",
+        "title": "flash-vscode: Jump to Previous Match"
+      },
+      {
+        "command": "flash-vscode.jump.lineDown",
+        "title": "flash-vscode: Labels All Next Lines"
+      },
+      {
+        "command": "flash-vscode.jump.lineUp",
+        "title": "flash-vscode: Labels All Previous Lines"
       }
     ],
     "keybindings": [
