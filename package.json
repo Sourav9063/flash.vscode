@@ -1,9 +1,9 @@
 {
   "name": "flash-vscode-latest",
   "displayName": "flash.vscode(latest)",
-  "description": "Minimal port of the flash.nvim plugin, bringing fast, label-based code navigation to Visual Studio Code",
+  "description": "The easiest way to have the best plugin of Neovim, flash.nvim, in Visual Studio Code, bringing fast, label-based code navigation.",
   "icon": "images/flash.vscode128.png",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "engines": {
     "vscode": "^1.96.0"
   },
