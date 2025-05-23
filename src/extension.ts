@@ -114,6 +114,7 @@ export function activate(context: vscode.ExtensionContext) {
 	let searchQuery = '';
 	let prevSearchQuery = '';
 	let symbols: vscode.DocumentSymbol[] = [];
+	let isSelection = false;
 
 	// Map of label character to target position
 	let labelMap: Map<string, { editor: vscode.TextEditor, position: vscode.Position }> = new Map();
@@ -386,6 +387,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const startSelection = vscode.commands.registerCommand('flash-vscode.startSelection', () => {
 		updateFlashVscodeMode(flashVscodeModes.selection);
+		isSelection = true;
 		_start();
 		updateHighlights();
 	});
@@ -403,6 +405,7 @@ export function activate(context: vscode.ExtensionContext) {
 		active = false;
 		prevSearchQuery = searchQuery;
 		searchQuery = '';
+		isSelection = false;
 		allMatchSortByRelativeDis = undefined;
 		nextMatchIndex = undefined;
 		labelMap.clear();
@@ -427,9 +430,9 @@ export function activate(context: vscode.ExtensionContext) {
 	const jump = (target: { editor: vscode.TextEditor, position: vscode.Position }, scroll: boolean = false) => {
 		const targetEditor = target.editor;
 		const targetPos = target.position;
-		const selectFrom = isMode(flashVscodeModes.selection) ? targetEditor.selection.anchor : targetPos;
+		const selectFrom = isSelection || isMode(flashVscodeModes.selection) ? targetEditor.selection.anchor : targetPos;
 		const isForward = targetEditor.selection.anchor.isBefore(targetPos);
-		const selectTo = isMode(flashVscodeModes.selection) ? new vscode.Position(targetPos.line, targetPos.character + (isForward ? 1 : 0)) : targetPos;
+		const selectTo = isSelection || isMode(flashVscodeModes.selection) ? new vscode.Position(targetPos.line, targetPos.character + (isForward ? 1 : 0)) : targetPos;
 		targetEditor.selection = new vscode.Selection(selectFrom, selectTo);
 		targetEditor.revealRange(new vscode.Range(targetPos, targetPos), scroll ? vscode.TextEditorRevealType.InCenter : vscode.TextEditorRevealType.Default);
 		// If the target is in a different editor, focus that editor
