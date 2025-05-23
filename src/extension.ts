@@ -118,6 +118,7 @@ export function activate(context: vscode.ExtensionContext) {
 	interface LocationInfo { editor: vscode.TextEditor, range: vscode.Range, matchStart: vscode.Position, relativeDis: number }
 	let allMatches: LocationInfo[] = [];
 	let allMatchSortByRelativeDis: LocationInfo[] | undefined;
+	let prevSortKey: string = '';
 	let nextMatchIndex: number | undefined;
 
 	const searchChars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~`!@#$%^&*()-_=+[]{}|\\;:\'",.<>/?';
@@ -442,8 +443,9 @@ export function activate(context: vscode.ExtensionContext) {
 			const cursorPos = activeEditor.selection.active;
 			let target: LocationInfo | undefined;
 			const curPos = relativeVsCodePosition(cursorPos);
-			if (allMatchSortByRelativeDis === undefined) {
+			if (allMatchSortByRelativeDis === undefined || prevSortKey !== searchQuery) {
 				allMatchSortByRelativeDis = allMatches.filter(m => m.editor === activeEditor).sort((a, b) => a.relativeDis - b.relativeDis);
+				prevSortKey = searchQuery;
 			}
 			if (chr === 'shiftEnter') {
 				nextMatchIndex = nextMatchIndex !== undefined ? nextMatchIndex - 1 : allMatchSortByRelativeDis.findIndex(m => m.relativeDis > curPos);
