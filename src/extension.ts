@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-const flashVscodeModes = { idle: 'idle', active: 'active', lineUp: 'lineUp', lineDown: 'lineDown', symbol: 'symbol', selection: 'selection', };
+const flashVscodeModes = { idle: 'idle', active: 'active', lineUp: 'lineUp', lineDown: 'lineDown', symbol: 'symbol', selection: 'selection', enter: 'enter', shiftEnter: 'shiftEnter', };
 const flashVscodeModeKey = 'flash-vscode-mode';
 let flashVscodeMode: string = flashVscodeModes.idle;
 
@@ -209,12 +209,15 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 			}
 			else if (isMode(flashVscodeModes.lineDown, flashVscodeModes.lineUp)) {
-
 				const currentLine = editor.selection.active.line;
 				const itr = isMode(flashVscodeModes.lineDown) ? 1 : -1;
 
 				for (let i = 0; i < labelChars.length; i++) {
-					const matchStart = new vscode.Position(currentLine + itr * i, 0);
+					const line = currentLine + (itr * i);
+					if (line > document.lineCount || line < 0) {
+						break;
+					}
+					const matchStart = new vscode.Position(line, 0);
 					allMatches.push({ editor, range: new vscode.Range(matchStart, matchStart), matchStart: matchStart, relativeDis: relativeVsCodePosition(matchStart) });
 				}
 
@@ -370,23 +373,21 @@ export function activate(context: vscode.ExtensionContext) {
 	const _start = () => {
 		if (active) { return; };
 		active = true;
-		searchQuery = '';
-		labelMap.clear();
-		symbols = [];
 		// Set a context key for when-clause usage (for keybindings)
 		vscode.commands.executeCommand('setContext', 'flash-vscode.active', true);
 		// Initial highlight update (just grey out everything visible)
-		updateHighlights();
 	};
 
 	const start = vscode.commands.registerCommand('flash-vscode.start', () => {
 		updateFlashVscodeMode(flashVscodeModes.active);
 		_start();
+		updateHighlights();
 	});
 
 	const startSelection = vscode.commands.registerCommand('flash-vscode.startSelection', () => {
 		updateFlashVscodeMode(flashVscodeModes.selection);
 		_start();
+		updateHighlights();
 	});
 
 	// Exit navigation mode (clear decorations and reset state)
@@ -405,6 +406,7 @@ export function activate(context: vscode.ExtensionContext) {
 		allMatchSortByRelativeDis = undefined;
 		nextMatchIndex = undefined;
 		labelMap.clear();
+		symbols = [];
 		vscode.commands.executeCommand('setContext', 'flash-vscode.active', false);
 		updateFlashVscodeMode(flashVscodeModes.idle);
 		vscode.window.setStatusBarMessage('');
@@ -480,6 +482,12 @@ export function activate(context: vscode.ExtensionContext) {
 	// const throttledHandleEnterOrShiftEnter250 = throttle(handleEnterOrShiftEnter, 250);
 
 	// Override the 'type' command to capture alphanumeric/symbol keys while in nav mode
+	const handleLine = (direction: string) => {
+		_start();
+		updateFlashVscodeMode(direction);
+		searchQuery = '';
+		updateHighlights();
+	};
 	const handleInput = (chr: string) => {
 		if (chr === 'space') {
 			chr = ' ';
@@ -491,20 +499,14 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
 		switch (chr) {
-			case 'symbol':
+			case flashVscodeModes.symbol:
 				updateFlashVscodeMode(flashVscodeModes.symbol);
-				searchQuery = '';
-				updateHighlights();
 				return;
-			case 'lineUp':
-				updateFlashVscodeMode(flashVscodeModes.lineUp);
-				searchQuery = '';
-				updateHighlights();
+			case flashVscodeModes.lineUp:
+				handleLine(flashVscodeModes.lineUp);
 				return;
-			case 'lineDown':
-				updateFlashVscodeMode(flashVscodeModes.lineDown);
-				searchQuery = '';
-				updateHighlights();
+			case flashVscodeModes.lineDown:
+				handleLine(flashVscodeModes.lineDown);
 				return;
 			case 'enter':
 			case 'shiftEnter':
@@ -541,7 +543,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 
-	let allChars = searchChars.split('').concat([ 'space', 'enter', 'shiftEnter', 'symbol', 'lineDown', 'lineUp' ]);
+	let allChars = searchChars.split('').concat([ 'space', ...Object.values(flashVscodeModes) ]);
 	context.subscriptions.push(configChangeListener, start, startSelection, exit, backspaceHandler, visChange,
 		...allChars.map(c => vscode.commands.registerCommand(`flash-vscode.jump.${c}`, () => handleInput(c)))
 	);

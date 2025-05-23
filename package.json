@@ -156,12 +156,12 @@
       {
         "key": "alt+j",
         "command": "flash-vscode.jump.lineDown",
-        "when": "flash-vscode-mode!='idle' && editorTextFocus"
+        "when": "flash-vscode-mode=='idle'&& editorFocus || editorIsOpen"
       },
       {
         "key": "alt+k",
         "command": "flash-vscode.jump.lineUp",
-        "when": "flash-vscode-mode!='idle' && editorTextFocus"
+        "when": "flash-vscode-mode=='idle'&& editorFocus || editorIsOpen"
       },
       {
         "key": "ctrl+enter",
