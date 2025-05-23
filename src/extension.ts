@@ -22,7 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
 	let labelDecoration: vscode.TextEditorDecorationType;
 	let labelDecorationQuestion: vscode.TextEditorDecorationType;
 
-	let dimColor: string;
+	let dimOpacity: string;
 	let matchColor: string;
 	let matchFontWeight: string;
 	let labelColor: string;
@@ -34,27 +34,29 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const getConfiguration = () => {
 		config = vscode.workspace.getConfiguration('flash-vscode');
-		dimColor = config.get<string>('dimColor', 'rgba(128, 128, 128, 0.6)');
+		dimOpacity = config.get<string>('dimOpacity', '0.65');
 		matchColor = config.get<string>('matchColor', '#3e68d7');
 		matchFontWeight = config.get<string>('matchFontWeight', 'bold');
-		labelColor = config.get<string>('labelColor', '#c8c6eb');
-		labelBackgroundColor = config.get<string>('labelBackgroundColor', '#ff007c99');
-		labelQuestionBackgroundColor = config.get<string>('labelQuestionBackgroundColor', '#3E68D799');
+		labelColor = config.get<string>('labelColor', '#ffffff');
+		labelBackgroundColor = config.get<string>('labelBackgroundColor', '#ff007c');
+		labelQuestionBackgroundColor = config.get<string>('labelQuestionBackgroundColor', '#3E68D7');
 		labelFontWeight = config.get<string>('labelFontWeight', 'bold');
 		// Define the character pool for labels: lowercase, then uppercase, then digits
 		labelChars = config.get<string>('labelKeys', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:\'",.<>/`~\\');
 		caseSensitive = config.get<boolean>('caseSensitive', false);
 
 		dimDecoration = vscode.window.createTextEditorDecorationType({
-			color: dimColor
+			opacity: dimOpacity
 		});
 		matchDecoration = vscode.window.createTextEditorDecorationType({
-			color: matchColor,
+			color: `${matchColor}70`,
+			opacity: '1 !important',
 			backgroundColor: `${matchColor}70`,
 			fontWeight: matchFontWeight,
-			textDecoration: `none; z-index: 1; color: ${matchColor} !important;`,
+			textDecoration: `none; z-index: 10; color: ${matchColor} !important;`,
 		});
 		labelDecoration = vscode.window.createTextEditorDecorationType({
+			opacity: '1 !important',
 			before: {
 				color: labelColor,
 				backgroundColor: labelBackgroundColor,
@@ -63,6 +65,7 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		});
 		labelDecorationQuestion = vscode.window.createTextEditorDecorationType({
+			opacity: '1 !important',
 			before: {
 				color: labelColor,
 				backgroundColor: labelQuestionBackgroundColor,
@@ -339,7 +342,7 @@ export function activate(context: vscode.ExtensionContext) {
 				if (char !== '?') {
 					labelMap.set(char, { editor: editor, position: match.matchStart });
 					decorationOptions.push({
-						range: labelRange,
+						range: new vscode.Range(labelRange.start.line, labelRange.start.character, labelRange.start.line, labelRange.start.character + 1),
 						renderOptions: {
 							before: { contentText: char }
 						}
@@ -347,7 +350,7 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 				else {
 					questionDecorationOptions.push({
-						range: labelRange,
+						range: new vscode.Range(labelRange.start.line, labelRange.start.character, labelRange.start.line, labelRange.start.character + 1),
 						renderOptions: {
 							before: { contentText: '?' }
 						}

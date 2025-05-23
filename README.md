@@ -65,18 +65,18 @@ The following configuration options allow you to customize the visual appearance
 
 ```json
 {
-  "flash-vscode.dimColor": "rgba(128, 128, 128, 0.6)",
+  "flash-vscode.dimOpacity": "0.65",
   "flash-vscode.matchColor": "#3e68d7",
   "flash-vscode.matchFontWeight": "bold",
-  "flash-vscode.labelColor": "#c8c6eb",
-  "flash-vscode.labelBackgroundColor": "#ff007c99",
-  "flash-vscode.labelQuestionBackgroundColor": "#3E68D799",
+  "flash-vscode.labelColor": "#ffffff",
+  "flash-vscode.labelBackgroundColor": "#ff007c",
+  "flash-vscode.labelQuestionBackgroundColor": "#3E68D7",
   "flash-vscode.labelFontWeight": "bold",
   "flash-vscode.labelKeys": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+[]{}|;:'\",.<>/?"
 }
 ```
 
-- `flash-vscode.dimColor`: Color used to dim text.
+- `flash-vscode.dimOpacity`: Opacity used to dim text.
 - `flash-vscode.matchColor`: Color used for matched text.
 - `flash-vscode.matchFontWeight`: Font weight for matched text.
 - `flash-vscode.labelColor`: Color used for label text.

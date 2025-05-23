@@ -50,9 +50,9 @@
           "default": false,
           "description": "When enabled, search matches will be case sensitive."
         },
-        "flash-vscode.dimColor": {
+        "flash-vscode.dimOpacity": {
           "type": "string",
-          "default": "rgba(128, 128, 128, 0.6)",
+          "default": "0.65",
           "description": "Color used to dim text."
         },
         "flash-vscode.matchColor": {
@@ -67,17 +67,17 @@
         },
         "flash-vscode.labelColor": {
           "type": "string",
-          "default": "#c8c6eb",
+          "default": "#ffffff",
           "description": "Color used for label text."
         },
         "flash-vscode.labelBackgroundColor": {
           "type": "string",
-          "default": "#ff007c99",
+          "default": "#ff007c",
           "description": "Background color for labels."
         },
         "flash-vscode.labelQuestionBackgroundColor": {
           "type": "string",
-          "default": "#3E68D799",
+          "default": "#3E68D7",
           "description": "Background color for question labels."
         },
         "flash-vscode.labelFontWeight": {
