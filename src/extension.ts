@@ -430,8 +430,9 @@ export function activate(context: vscode.ExtensionContext) {
 	const jump = (target: { editor: vscode.TextEditor, position: vscode.Position }, scroll: boolean = false) => {
 		const targetEditor = target.editor;
 		const targetPos = target.position;
-		const selectFrom = isSelection || isMode(flashVscodeModes.selection) ? targetEditor.selection.anchor : targetPos;
 		const isForward = targetEditor.selection.anchor.isBefore(targetPos);
+
+		const selectFrom = isSelection || isMode(flashVscodeModes.selection) ? isForward ? targetEditor.selection.start : targetEditor.selection.end : targetPos;
 		const selectTo = isSelection || isMode(flashVscodeModes.selection) ? new vscode.Position(targetPos.line, targetPos.character + (isForward ? 1 : 0)) : targetPos;
 		targetEditor.selection = new vscode.Selection(selectFrom, selectTo);
 		targetEditor.revealRange(new vscode.Range(targetPos, targetPos), scroll ? vscode.TextEditorRevealType.InCenter : vscode.TextEditorRevealType.Default);
