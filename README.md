@@ -32,12 +32,9 @@
    Flash VSCode provides two main functionalities:
 
    - **`flash-vscode.start`**: `alt+f` Moves the cursor directly to the selected target.
+   - `alt+f` while some text is selected will search for the selected text.
 
      ![flash jump](https://github.com/user-attachments/assets/9a416efd-0927-4df8-b1f1-81d1582f328c)
-
-   - **`flash-vscode.startSelection`**: `alt+shift+f` Extends the selection from the original position to the target.
-
-     ![flash select](https://github.com/user-attachments/assets/e3a12392-3ab5-4ff7-a657-f28c4b09da2d)
 
    - Press `alt+f` or `alt+shift+f` then `<search>` then `enter` to goto next match, `shift+enter` to goto previous match.
    - Press `alt+f` or `alt+shift+f` then `enter` to search previously entered query.
@@ -46,12 +43,17 @@
      ![flash enter](https://github.com/user-attachments/assets/e2f932e3-73c6-4acd-9d8c-9937bb116821)
 
    - Press `alt+j` or `alt+k` to mark all the next line or previous line.
+     | Next Line | Previous Line |
+     | :--------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------: |
+     | ![Screenshot (178)](https://github.com/user-attachments/assets/9281233c-2021-4a4a-9a8b-e5e0bdfa350c) | ![Screenshot (176)](https://github.com/user-attachments/assets/ef55f28b-3560-4884-a131-b2ac04ec9453) |
 
-|                                              Next Line                                               |                                            Previous Line                                             |
-| :--------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------: |
-| ![Screenshot (178)](https://github.com/user-attachments/assets/9281233c-2021-4a4a-9a8b-e5e0bdfa350c) | ![Screenshot (176)](https://github.com/user-attachments/assets/ef55f28b-3560-4884-a131-b2ac04ec9453) |
+2. **Selection:**
 
-2. **Cancel Navigation:**
+   - **`flash-vscode.startSelection`**: `alt+shift+f` Extends the selection from the original position to the target.
+
+     ![flash select](https://github.com/user-attachments/assets/e3a12392-3ab5-4ff7-a657-f28c4b09da2d)
+
+3. **Cancel Navigation:**
    - Press `Backspace` to remove the last character of your query, or press `Escape` to exit jump mode.
 
 ## Configuration
