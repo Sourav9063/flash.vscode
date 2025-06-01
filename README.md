@@ -38,6 +38,7 @@
 
    - Press `alt+f` or `alt+shift+f` then `<search>` then `enter` to goto next match, `shift+enter` to goto previous match.
    - Press `alt+f` or `alt+shift+f` then `enter` to search previously entered query.
+   - Select text and press `alt+f` or `alt+shift+f` then `enter` to search and mark the selected text.
    - Press `alt+f` or `alt+shift+f` then `ctrl+enter` to mark all the variables in the current file.
 
      ![flash enter](https://github.com/user-attachments/assets/e2f932e3-73c6-4acd-9d8c-9937bb116821)

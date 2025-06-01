@@ -382,13 +382,6 @@ export function activate(context: vscode.ExtensionContext) {
 	const start = vscode.commands.registerCommand('flash-vscode.start', () => {
 		updateFlashVscodeMode(flashVscodeModes.active);
 		_start();
-		const editor = vscode.window.activeTextEditor;
-		if (editor) {
-			const selectedText = editor.document.getText(editor.selection);
-			if (selectedText.length > 0 && selectedText.length < 100 && !selectedText.includes('\n')) {
-				searchQuery = selectedText;
-			}
-		}
 		updateHighlights();
 	});
 
@@ -451,7 +444,16 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const handleEnterOrShiftEnter = (chr: string) => {
 		if (searchQuery.length === 0) {
-			searchQuery = prevSearchQuery;
+			let selectedText = '';
+			const editor = vscode.window.activeTextEditor;
+			if (editor) {
+				selectedText = editor.document.getText(editor.selection);
+			}
+			if (selectedText.length > 0 && selectedText.length < 100 && !selectedText.includes('\n')) {
+				searchQuery = selectedText;
+			} else {
+				searchQuery = prevSearchQuery;
+			}
 			updateHighlights();
 		}
 		const activeEditor = vscode.window.activeTextEditor;

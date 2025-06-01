@@ -3,7 +3,7 @@
   "displayName": "flash.vscode(latest)",
   "description": "The easiest way to have the best plugin of Neovim, flash.nvim, in Visual Studio Code, bringing fast, label-based code navigation.",
   "icon": "images/flash.vscode128.png",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "engines": {
     "vscode": "^1.96.0"
   },
