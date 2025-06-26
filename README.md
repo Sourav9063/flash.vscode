@@ -2,15 +2,22 @@
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Configuration](#configuration)
-- [Acknowledgements](#acknowledgements)
+- [Flash VSCode](#flash-vscode)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Installation](#installation)
+  - [Usage](#usage)
+    - [Tutorial](#tutorial)
+  - [Configuration](#configuration)
+    - [Case Sensitivity](#case-sensitivity)
+    - [Appearance Customization](#appearance-customization)
+    - [VSCodeVim Integration (Optional)](#vscodevim-integration-optional)
+  - [Acknowledgements](#acknowledgements)
+  - [Keywords](#keywords)
 
 ## Overview
 
-**flash.vscode(latest)** is the easiest way to have the best plugin of Neovim, [flash.nvim](https://github.com/folke/flash.nvim) in Visual Studio Code. Works with [VScodeWeb](https://vscode.dev)
+**flash.vscode(latest)** flash vscode is the easiest way to have the best plugin of Neovim, [flash.nvim](https://github.com/folke/flash.nvim) in Visual Studio Code. Works with [VScodeWeb](https://vscode.dev)
 
 **You Don't Need To Know VIM to Use Flash VSCode**
 
@@ -61,7 +68,7 @@
 
 ### Case Sensitivity
 
-By default, `flash-vscode`'s search is smart case insensitive. If any uppercase latter exists then becomes case sensitive. To change this behavior, add to your settings:
+By default, `flash-vscode`'s search is using smart case. Meaning if any uppercase latter exists then becomes case sensitive, else becomes case insensitive. To change this behavior, add to your settings:
 
 ```json
 {
@@ -124,3 +131,14 @@ This configuration triggers Flash VSCode when you press `s` or `S` in normal mod
 - [Jumpy2](https://marketplace.visualstudio.com/items?itemName=DavidLGoldberg.jumpy2) for some of the implementation details.
 - [flash.vscode](https://github.com/cunbidun/flash.vscode) flash.vscode(latest) extension is supper set of this extension.
 - [CVim-PR](https://github.com/VSCodeVim/Vim/issues/8567) [CVim](https://github.com/cuixiaorui/vscodeVim/tree/flash) for ux improvement ideas.
+ 
+## Keywords
+- flash.nvim
+- flash.vscode
+- flash vscode
+- flash-vscode
+- flash
+- nvim
+- neovim 
+- jumpy
+- easymotion
